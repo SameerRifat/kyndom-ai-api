@@ -24,6 +24,7 @@ router = APIRouter()
 origins = [
     "http://localhost:3000",  # Your Next.js frontend
     "http://127.0.0.1:3000",  # Your Next.js frontend
+    "https://app.kyndom.com"
 ]
 
 app.add_middleware(
