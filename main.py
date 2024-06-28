@@ -23,9 +23,8 @@ router = APIRouter()
 
 # Configure CORS
 origins = [
-    "http://localhost:3000",  
-    "http://127.0.0.1:3000",  
-    "https://app.kyndom.com"
+    "http://localhost:3000",  # Your Next.js frontend
+    "http://127.0.0.1:3000",  # Your Next.js frontend
 ]
 
 app.add_middleware(
@@ -83,29 +82,28 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = "user"
     assistant: str = "RAG_PDF"
     new: bool = False
-    template_type: str
+    template_type: Optional[str] = None
 
 def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str]) -> Assistant:
-    assistant = Assistant(
-        description="You are a real estate assistant for my real estate agency",
-        instructions= get_dynamic_instructions(template_type),
-        run_id=run_id,
-        user_id=user_id,
-        storage=storage,
-        tools=[DuckDuckGo()],
-        show_tool_calls=True,
-        search_knowledge=True,
-        read_chat_history=True,
-        # debug_mode=True,
-        create_memories=True,
-        memory=AssistantMemory(
+    assistant_params = {
+        "description": "You are a real estate assistant for my real estate agency",
+        "run_id": run_id,
+        "user_id": user_id,
+        "storage": storage,
+        "tools": [DuckDuckGo()],
+        "show_tool_calls": True,
+        "search_knowledge": True,
+        "read_chat_history": True,
+        # "debug_mode": True,
+        "create_memories": True,
+        "memory": AssistantMemory(
             db=PgMemoryDb(
                 db_url=db_url,
                 table_name="personalized_assistant_memory",
             )
         ),
-        update_memory_after_run=True,
-        knowledge_base=AssistantKnowledge(
+        "update_memory_after_run": True,
+        "knowledge_base": AssistantKnowledge(
             vector_db=PgVector2(
                 db_url=db_url,
                 collection="personalized_assistant_documents",
@@ -113,15 +111,20 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
             ),
             num_documents=3,
         ),
-        add_chat_history_to_messages=True,
-        introduction=dedent(
+        "add_chat_history_to_messages": True,
+        "introduction": dedent(
             """\
             Hi, I'm your personalized Assistant called OptimusV7.
             I can remember details about your preferences and solve problems using tools and other AI Assistants.
             Let's get started!\
             """
         )
-    )
+    }
+
+    if template_type:
+        assistant_params["instructions"] = get_dynamic_instructions(template_type)
+
+    assistant = Assistant(**assistant_params)
     return assistant
 
 def chat_response_streamer(assistant: Assistant, message: str) -> Generator:
