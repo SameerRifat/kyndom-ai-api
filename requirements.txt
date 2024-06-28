@@ -7,3 +7,4 @@ psycopg[binary]
 sqlalchemy
 phidata[aws]
 openai
+duckduckgo-search
