@@ -96,7 +96,7 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
         show_tool_calls=True,
         search_knowledge=True,
         read_chat_history=True,
-        debug_mode=True,
+        # debug_mode=True,
         create_memories=True,
         memory=AssistantMemory(
             db=PgMemoryDb(
