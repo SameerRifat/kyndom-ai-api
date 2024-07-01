@@ -12,7 +12,6 @@ from textwrap import dedent
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from phi.tools.duckduckgo import DuckDuckGo
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,6 @@ storage = PgAssistantStorage(table_name="my_assistant", db_url=db_url)
 app = FastAPI()
 router = APIRouter()
 
-# Configure CORS
 origins = [
     "http://localhost:3000",  
     "http://127.0.0.1:3000",  
@@ -48,7 +46,6 @@ def get_dynamic_instructions(template_type):
             "6. Format: Maintain the original format of the template.",
             "7. Length: Ensure the personalized template does not exceed 350 words.",
         ]
-    # "2. Do Not Use Previous Reel Idea Information: Do not use the information from previous Reel Ideas for the current Reel Idea. Each Reel Idea should be treated independently.",
     elif template_type == "STORY_IDEAS":
         specific_instructions = [
             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
@@ -59,7 +56,6 @@ def get_dynamic_instructions(template_type):
             "6. Format: Maintain the original format of the story idea.",
             "7. Length: Ensure the personalized story idea does not exceed 350 words."
         ]
-    # "2. Do Not Use Previous Information: Do not use the information from previous templates for the current template. Each template should be treated independently.",
     elif template_type == "TODAYS_PLAN":
         specific_instructions = [
             "This is a 'Today's Plan' template.",
@@ -71,7 +67,6 @@ def get_dynamic_instructions(template_type):
             "6. Format: Maintain the original format of the idea.",
             "7. Length: Ensure the personalized idea does not exceed 350 words."
         ]
-    # "2. Do Not Use Previous Information: Do not use the information from previous templates for the current template. Each template should be treated independently.",
     else:
         specific_instructions = []
 
@@ -166,6 +161,56 @@ async def chat(body: ChatRequest):
             return JSONResponse({"run_id": assistant.run_id, "response": response})
         else:
             return JSONResponse({"response": response})
+    
+class ChatHistoryRequest(BaseModel):
+    run_id: str
+    user_id: Optional[str] = None
+
+
+@router.post("/history", response_model=List[Dict[str, Any]])
+async def get_chat_history(body: ChatHistoryRequest):
+    """Return the chat history for an Assistant run"""
+
+    logger.debug(f"ChatHistoryRequest: {body}")
+    assistant: Assistant = get_assistant(
+        run_id=body.run_id, user_id=body.user_id, template_type=None
+    )
+    # Load the assistant from the database
+    assistant.read_from_storage()
+
+    chat_history = assistant.memory.get_chat_history()
+    return chat_history
+
+@router.get("/")
+async def health_check():
+    return "The health check is successful!"
+
+class GetAllAssistantRunsRequest(BaseModel):
+    user_id: str
+
+@app.post("/get-all", response_model=List[AssistantRun])
+def get_assistants(body: GetAllAssistantRunsRequest):
+    """Return all Assistant runs for a user"""
+    return storage.get_all_runs(user_id=body.user_id)
+
+
+class GetAllAssistantRunIdsRequest(BaseModel):
+    user_id: str
+
+@app.post("/get-all-ids", response_model=List[str])
+def get_run_ids(body: GetAllAssistantRunIdsRequest):
+    """Return all run_ids for a user"""
+    return storage.get_all_run_ids(user_id=body.user_id)
+
+
+app.include_router(router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
 
 
 # from fastapi import FastAPI, APIRouter
