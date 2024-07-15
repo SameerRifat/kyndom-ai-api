@@ -18,7 +18,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import json
 from typing import List, Dict, Any
-
+# import prompt
+from system_prompt import prompt;
+from system_prompt import instructions
 
 from contextlib import contextmanager
 
@@ -157,7 +159,9 @@ class ChatRequest(BaseModel):
 
 def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str], template_title: Optional[str] = None, template_id: Optional[str] = None) -> Assistant:
     assistant_params = {
-        "description": "You are a real estate assistant for my real estate agency",
+        "debug_mode": True,
+        "description": prompt,
+        "instructions": instructions,
         "run_id": run_id,
         "user_id": user_id,
         "storage": storage,
@@ -183,19 +187,20 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
         "add_chat_history_to_messages": True,
         "introduction": dedent(
             """\
-            Hi, I'm your personalized Assistant called OptimusV7.
-            I can remember details about your preferences and solve problems using tools and other AI Assistants.
+            Hi, I'm your personalized Assistant called Kynda AI.
+            I can remember details about your preferences and solve problems.
             Let's get started!\
             """
         ),
+        "prevent_hallucinations": True,
         "assistant_data": {
             "template_title": template_title,
             "template_id": template_id
         }
     }
 
-    if template_type:
-        assistant_params["instructions"] = get_dynamic_instructions(template_type)
+    # if template_type:
+    #     assistant_params["instructions"] = get_dynamic_instructions(template_type)
 
     assistant = Assistant(**assistant_params)
     return assistant
