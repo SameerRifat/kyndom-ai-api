@@ -159,7 +159,6 @@ class ChatRequest(BaseModel):
 
 def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str], template_title: Optional[str] = None, template_id: Optional[str] = None) -> Assistant:
     assistant_params = {
-        "debug_mode": True,
         "description": prompt,
         "instructions": instructions,
         "run_id": run_id,
@@ -169,6 +168,7 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
         "search_knowledge": True,
         "read_chat_history": True,
         "create_memories": True,
+        "show_tool_calls": True,
         "memory": AssistantMemory(
             db=PgMemoryDb(
                 db_url=db_url,
@@ -220,7 +220,6 @@ async def chat(body: ChatRequest):
     run_id: Optional[str] = body.run_id if body.run_id else None
     is_new_session = False
 
-    print('run_id befor: ', run_id)
     
     if body.new:
         is_new_session = True
@@ -229,8 +228,6 @@ async def chat(body: ChatRequest):
         if len(existing_run_ids) > 0:
             run_id = existing_run_ids[0]
 
-    print('run_id after: ', run_id)
-    
     assistant: Assistant = get_assistant(
         run_id=run_id,
         user_id=body.user_id,
