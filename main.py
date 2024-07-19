@@ -146,17 +146,6 @@ def get_dynamic_instructions(template_type):
 
     return specific_instructions
 
-class ChatRequest(BaseModel):
-    message: str
-    stream: bool = False
-    run_id: Optional[str] = None
-    user_id: Optional[str] = "user"
-    assistant: str = "RAG_PDF"
-    new: bool = False
-    template_type: Optional[str] = None
-    template_title: Optional[str] = None  # New field
-    template_id: Optional[str] = None  # New field
-
 def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str], template_title: Optional[str] = None, template_id: Optional[str] = None) -> Assistant:
     assistant_params = {
         "description": prompt,
@@ -195,7 +184,8 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
         "prevent_hallucinations": True,
         "assistant_data": {
             "template_title": template_title,
-            "template_id": template_id
+            "template_id": template_id,
+            "template_tag": template_type
         }
     }
 
@@ -211,6 +201,17 @@ def chat_response_streamer(assistant: Assistant, message: str, is_new_session: b
     for chunk in assistant.run(message):
         yield chunk
     yield "[DONE]\n\n"
+
+class ChatRequest(BaseModel):
+    message: str
+    stream: bool = False
+    run_id: Optional[str] = None
+    user_id: Optional[str] = "user"
+    assistant: str = "RAG_PDF"
+    new: bool = False
+    template_type: Optional[str] = None
+    template_title: Optional[str] = None  
+    template_id: Optional[str] = None  
 
 @router.post("/chat")
 async def chat(body: ChatRequest):

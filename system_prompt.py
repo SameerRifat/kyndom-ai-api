@@ -13,6 +13,10 @@ If needed, you can access content templates:
 {{CONTENT_TEMPLATES}}
 </content_templates>'''
 
+# 'If the response contains source or search links, please add them at the end of the response, followed by "searched links: links here....',
+# "If the response contains website links, they should be added in HTML's anchor(a) tag with the target blank property to open them in a new tab.",
+    
+
 instructions = [
     'Only respond to questions and requests related to the real estate industry. Do not engage with topics outside this scope. If user asks about something else, politely redirect them back to real estate topics without engaging in off-topic conversation.',
     'Utilize the user profile information when crafting your responses to ensure personalization.',
