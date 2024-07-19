@@ -21,7 +21,7 @@ from typing import List, Dict, Any
 # import prompt
 from system_prompt import prompt;
 from system_prompt import instructions
-
+from content_prompt import reel_script_prompt
 from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
@@ -150,6 +150,7 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
     assistant_params = {
         "description": prompt,
         "instructions": instructions,
+        # "extra_instructions": reel_script_prompt() if template_id else [],
         "run_id": run_id,
         "user_id": user_id,
         "storage": storage,
@@ -188,7 +189,8 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
             "template_tag": template_type
         }
     }
-
+    if template_id:
+        assistant_params['extra_instructions'] = reel_script_prompt()
     # if template_type:
     #     assistant_params["instructions"] = get_dynamic_instructions(template_type)
 
