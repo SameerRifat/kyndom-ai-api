@@ -109,8 +109,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def get_dynamic_instructions(template_type):
-    if template_type == "REELS_IDEAS":
+def get_dynamic_instructions(template_category):
+    if template_category == "REELS_IDEAS":
         specific_instructions = [
             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
             "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
@@ -120,7 +120,7 @@ def get_dynamic_instructions(template_type):
             "6. Format: Maintain the original format of the template.",
             "7. Length: Ensure the personalized template does not exceed 350 words.",
         ]
-    elif template_type == "STORY_IDEAS":
+    elif template_category == "STORY_IDEAS":
         specific_instructions = [
             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
             "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
@@ -130,7 +130,7 @@ def get_dynamic_instructions(template_type):
             "6. Format: Maintain the original format of the story idea.",
             "7. Length: Ensure the personalized story idea does not exceed 350 words."
         ]
-    elif template_type == "TODAYS_PLAN":
+    elif template_category == "TODAYS_PLAN":
         specific_instructions = [
             "This is a 'Today's Plan' template.",
             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
@@ -146,7 +146,7 @@ def get_dynamic_instructions(template_type):
 
     return specific_instructions
 
-def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str], template_title: Optional[str] = None, template_id: Optional[str] = None) -> Assistant:
+def get_assistant(run_id: Optional[str], user_id: Optional[str], template_category: Optional[str] = None, template_title: Optional[str] = None, template_id: Optional[str] = None, template_tag: Optional[str] = None) -> Assistant:
     assistant_params = {
         "description": prompt,
         "instructions": instructions,
@@ -186,13 +186,14 @@ def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: 
         "assistant_data": {
             "template_title": template_title,
             "template_id": template_id,
-            "template_tag": template_type
+            "template_category": template_category,
+            "template_tag": template_tag
         }
     }
     if template_id:
         assistant_params['extra_instructions'] = reel_script_prompt()
-    # if template_type:
-    #     assistant_params["instructions"] = get_dynamic_instructions(template_type)
+    # if template_category:
+    #     assistant_params["instructions"] = get_dynamic_instructions(template_category)
 
     assistant = Assistant(**assistant_params)
     return assistant
@@ -211,9 +212,10 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = "user"
     assistant: str = "RAG_PDF"
     new: bool = False
-    template_type: Optional[str] = None
+    template_category: Optional[str] = None
     template_title: Optional[str] = None  
     template_id: Optional[str] = None  
+    template_tag: Optional[str] = None  
 
 @router.post("/chat")
 async def chat(body: ChatRequest):
@@ -234,9 +236,10 @@ async def chat(body: ChatRequest):
     assistant: Assistant = get_assistant(
         run_id=run_id,
         user_id=body.user_id,
-        template_type=body.template_type,
+        template_category=body.template_category,
         template_title=body.template_title,
-        template_id=body.template_id
+        template_id=body.template_id,
+        template_tag=body.template_tag
     )
     
     if body.stream:
@@ -250,6 +253,32 @@ async def chat(body: ChatRequest):
             return JSONResponse({"run_id": assistant.run_id, "response": response})
         else:
             return JSONResponse({"response": response})
+        
+class ChatSummaryRequest(BaseModel):
+    stream: bool = False
+    run_id: Optional[str] = None
+    user_id: Optional[str] = "user"
+    assistant: str = "RAG_PDF"
+
+@router.post("/chat-summary")
+async def chat(body: ChatSummaryRequest):
+    """Sends a message to an Assistant and returns the response"""
+    
+    logger.debug(f"ChatRequest: {body}")
+
+    assistant: Assistant = get_assistant(
+        run_id=body.run_id,
+        user_id=body.user_id,
+    )
+
+    summary_prompt = f"Generate a 4-6 word summary title of the chat's purpose. Provide only the summary words. Do not write the general purpose title; focus on the current chat to extract the summary title."
+    summary = assistant.run(summary_prompt, stream=False)
+
+    # Updata summary in template_title of assistant_data
+    assistant.assistant_data["template_title"] = summary
+
+    return JSONResponse({"response": summary})
+        
     
 class ChatHistoryRequest(BaseModel):
     run_id: str
@@ -262,7 +291,7 @@ async def get_chat_history(body: ChatHistoryRequest):
 
     logger.debug(f"ChatHistoryRequest: {body}")
     assistant: Assistant = get_assistant(
-        run_id=body.run_id, user_id=body.user_id, template_type=None
+        run_id=body.run_id, user_id=body.user_id, template_category=None
     )
     # Load the assistant from the database
     assistant.read_from_storage()
@@ -423,8 +452,8 @@ if __name__ == "__main__":
 #     allow_headers=["*"],
 # )
 
-# def get_dynamic_instructions(template_type):
-#     if template_type == "REELS_IDEAS":
+# def get_dynamic_instructions(template_category):
+#     if template_category == "REELS_IDEAS":
 #         specific_instructions = [
 #             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
 #             "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
@@ -434,7 +463,7 @@ if __name__ == "__main__":
 #             "6. Format: Maintain the original format of the template.",
 #             "7. Length: Ensure the personalized template does not exceed 350 words.",
 #         ]
-#     elif template_type == "STORY_IDEAS":
+#     elif template_category == "STORY_IDEAS":
 #         specific_instructions = [
 #             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
 #             "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
@@ -444,7 +473,7 @@ if __name__ == "__main__":
 #             "6. Format: Maintain the original format of the story idea.",
 #             "7. Length: Ensure the personalized story idea does not exceed 350 words."
 #         ]
-#     elif template_type == "TODAYS_PLAN":
+#     elif template_category == "TODAYS_PLAN":
 #         specific_instructions = [
 #             "This is a 'Today's Plan' template.",
 #             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
@@ -467,11 +496,11 @@ if __name__ == "__main__":
 #     user_id: Optional[str] = "user"
 #     assistant: str = "RAG_PDF"
 #     new: bool = False
-#     template_type: Optional[str] = None
+#     template_category: Optional[str] = None
 #     template_title: Optional[str] = None  # New field
 #     template_id: Optional[str] = None  # New field
 
-# def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str], template_title: Optional[str] = None, template_id: Optional[str] = None) -> Assistant:
+# def get_assistant(run_id: Optional[str], user_id: Optional[str], template_category: Optional[str], template_title: Optional[str] = None, template_id: Optional[str] = None) -> Assistant:
 #     assistant_params = {
 #         "description": "You are a real estate assistant for my real estate agency",
 #         "run_id": run_id,
@@ -510,8 +539,8 @@ if __name__ == "__main__":
 #         }
 #     }
 
-#     if template_type:
-#         assistant_params["instructions"] = get_dynamic_instructions(template_type)
+#     if template_category:
+#         assistant_params["instructions"] = get_dynamic_instructions(template_category)
 
 #     assistant = Assistant(**assistant_params)
 #     return assistant
@@ -541,7 +570,7 @@ if __name__ == "__main__":
 #     assistant: Assistant = get_assistant(
 #         run_id=run_id,
 #         user_id=body.user_id,
-#         template_type=body.template_type,
+#         template_category=body.template_category,
 #         template_title=body.template_title,
 #         template_id=body.template_id
 #     )
@@ -569,7 +598,7 @@ if __name__ == "__main__":
 
 #     logger.debug(f"ChatHistoryRequest: {body}")
 #     assistant: Assistant = get_assistant(
-#         run_id=body.run_id, user_id=body.user_id, template_type=None
+#         run_id=body.run_id, user_id=body.user_id, template_category=None
 #     )
 #     # Load the assistant from the database
 #     assistant.read_from_storage()
@@ -657,8 +686,8 @@ if __name__ == "__main__":
 #     allow_headers=["*"],
 # )
 
-# def get_dynamic_instructions(template_type):
-#     if template_type == "REELS_IDEAS":
+# def get_dynamic_instructions(template_category):
+#     if template_category == "REELS_IDEAS":
 #         specific_instructions = [
 #             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
 #             "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
@@ -668,7 +697,7 @@ if __name__ == "__main__":
 #             "6. Format: Maintain the original format of the template.",
 #             "7. Length: Ensure the personalized template does not exceed 350 words.",
 #         ]
-#     elif template_type == "STORY_IDEAS":
+#     elif template_category == "STORY_IDEAS":
 #         specific_instructions = [
 #             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
 #             "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
@@ -678,7 +707,7 @@ if __name__ == "__main__":
 #             "6. Format: Maintain the original format of the story idea.",
 #             "7. Length: Ensure the personalized story idea does not exceed 350 words."
 #         ]
-#     elif template_type == "TODAYS_PLAN":
+#     elif template_category == "TODAYS_PLAN":
 #         specific_instructions = [
 #             "This is a 'Today's Plan' template.",
 #             "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
@@ -701,9 +730,9 @@ if __name__ == "__main__":
 #     user_id: Optional[str] = "user"
 #     assistant: str = "RAG_PDF"
 #     new: bool = False
-#     template_type: Optional[str] = None
+#     template_category: Optional[str] = None
 
-# def get_assistant(run_id: Optional[str], user_id: Optional[str], template_type: Optional[str]) -> Assistant:
+# def get_assistant(run_id: Optional[str], user_id: Optional[str], template_category: Optional[str]) -> Assistant:
 #     assistant_params = {
 #         "description": "You are a real estate assistant for my real estate agency",
 #         "run_id": run_id,
@@ -740,8 +769,8 @@ if __name__ == "__main__":
 #         )
 #     }
 
-#     if template_type:
-#         assistant_params["instructions"] = get_dynamic_instructions(template_type)
+#     if template_category:
+#         assistant_params["instructions"] = get_dynamic_instructions(template_category)
 
 #     assistant = Assistant(**assistant_params)
 #     return assistant
@@ -769,7 +798,7 @@ if __name__ == "__main__":
 #             run_id = existing_run_ids[0]
     
 #     assistant: Assistant = get_assistant(
-#         run_id=run_id, user_id=body.user_id, template_type=body.template_type
+#         run_id=run_id, user_id=body.user_id, template_category=body.template_category
 #     )
     
 #     if body.stream:
@@ -795,7 +824,7 @@ if __name__ == "__main__":
 
 #     logger.debug(f"ChatHistoryRequest: {body}")
 #     assistant: Assistant = get_assistant(
-#         run_id=body.run_id, user_id=body.user_id, template_type=None
+#         run_id=body.run_id, user_id=body.user_id, template_category=None
 #     )
 #     # Load the assistant from the database
 #     assistant.read_from_storage()
