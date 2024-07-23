@@ -199,52 +199,6 @@ def get_dynamic_instructions(template_category):
 #     assistant = Assistant(**assistant_params)
 #     return assistant
 
-# def get_assistant2(run_id: Optional[str], user_id: Optional[str], template_id: Optional[str] = None) -> Assistant:
-#     assistant_params = {
-#         "description": prompt,
-#         "instructions": instructions,
-#         # "extra_instructions": reel_script_prompt() if template_id else [],
-#         "run_id": run_id,
-#         "user_id": user_id,
-#         "storage": storage,
-#         "tools": [DuckDuckGo()],
-#         "search_knowledge": True,
-#         "read_chat_history": True,
-#         "create_memories": True,
-#         "show_tool_calls": True,
-#         "memory": AssistantMemory(
-#             db=PgMemoryDb(
-#                 db_url=db_url,
-#                 table_name="personalized_assistant_memory",
-#             )
-#         ),
-#         "update_memory_after_run": True,
-#         "knowledge_base": AssistantKnowledge(
-#             vector_db=PgVector2(
-#                 db_url=db_url,
-#                 collection="personalized_assistant_documents",
-#                 embedder=OpenAIEmbedder(model="text-embedding-3-small", dimensions=1536),
-#             ),
-#             num_documents=3,
-#         ),
-#         "add_chat_history_to_messages": True,
-#         "introduction": dedent(
-#             """\
-#             Hi, I'm your personalized Assistant called Kynda AI.
-#             I can remember details about your preferences and solve problems.
-#             Let's get started!\
-#             """
-#         ),
-#         "prevent_hallucinations": True,
-#     }
-        
-#     if template_id:
-#         assistant_params['extra_instructions'] = reel_script_prompt()
-#     # if template_category:
-#     #     assistant_params["instructions"] = get_dynamic_instructions(template_category)
-
-#     assistant = Assistant(**assistant_params)
-#     return assistant
 
 def create_assistant_params(
     run_id: Optional[str], 
