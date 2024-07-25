@@ -317,7 +317,7 @@ async def chat(body: ChatRequest):
     logger.debug(f"ChatRequest: {body}")
     run_id: Optional[str] = body.run_id if body.run_id else None
     is_new_session = False
-
+    print("Im running")
     
     if body.new:
         is_new_session = True
