@@ -22,7 +22,7 @@ from utils import chat_response_streamer, is_sensitive_content
 # import prompt
 from system_prompt import prompt
 from system_prompt import instructions
-from content_prompt import reel_script_prompt
+from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +207,10 @@ def create_assistant_params(
         }
 
     if template_id:
-        assistant_params["extra_instructions"] = reel_script_prompt()
+        if template_category == "REELS_IDEAS":
+            assistant_params["extra_instructions"] = reel_script_prompt()
+        elif template_category == "STORY_IDEAS":
+            assistant_params["extra_instructions"] = story_script_prompt()
 
     return assistant_params
 
@@ -290,7 +293,21 @@ async def chat(body: ChatRequest):
         )
     )
 
-    prompts_first_lines = [prompt.split("\n")[0], instructions[0], reel_script_prompt()[0]]
+    extra_prompt = general_instruction
+
+    # Conditionally set extra_prompt based on template_category
+    if body.template_category == "REELS_IDEAS":
+        extra_prompt = reel_script_prompt()[0]
+    elif body.template_category == "STORY_IDEAS":
+        extra_prompt = story_script_prompt()[0]
+
+    prompts_first_lines = [
+        prompt.split("\n")[0],
+        instructions[0],
+        extra_prompt if extra_prompt else ""
+    ]
+
+    # prompts_first_lines = [prompt.split("\n")[0], instructions[0], reel_script_prompt()[0]]
     if body.stream:
         return StreamingResponse(
             chat_response_streamer(
