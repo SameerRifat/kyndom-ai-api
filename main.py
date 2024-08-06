@@ -19,6 +19,8 @@ from sqlalchemy.orm import sessionmaker
 import json
 from typing import List, Dict, Any
 from utils import chat_response_streamer, is_sensitive_content
+from intro_knowledge_base import knowledge_base
+
 # import prompt
 from system_prompt import prompt
 from system_prompt import instructions
@@ -177,16 +179,18 @@ def create_assistant_params(
             )
         ),
         "update_memory_after_run": True,
-        "knowledge_base": AssistantKnowledge(
-            vector_db=PgVector2(
-                db_url=db_url,
-                collection="personalized_assistant_documents",
-                embedder=OpenAIEmbedder(
-                    model="text-embedding-3-small", dimensions=1536
-                ),
-            ),
-            num_documents=3,
-        ),
+        # "knowledge_base": AssistantKnowledge(
+        #     vector_db=PgVector2(
+        #         db_url=db_url,
+        #         collection="personalized_assistant_documents",
+        #         embedder=OpenAIEmbedder(
+        #             model="text-embedding-3-small", dimensions=1536
+        #         ),
+        #     ),
+        #     num_documents=3,
+        # ),
+        "knowledge_base": knowledge_base,
+        "add_references_to_prompt": True,
         "add_chat_history_to_messages": True,
         "introduction": dedent(
             """\
@@ -197,7 +201,7 @@ def create_assistant_params(
         ),
         "prevent_hallucinations": True,
     }
-
+    
     if include_assistant_data:
         assistant_params["assistant_data"] = {
             "template_title": template_title,
@@ -292,7 +296,7 @@ async def chat(body: ChatRequest):
             template_id=body.template_id,
         )
     )
-
+    # assistant.knowledge_base.load(recreate=False)
     extra_prompt = general_instruction
 
     # Conditionally set extra_prompt based on template_category
@@ -304,7 +308,7 @@ async def chat(body: ChatRequest):
     prompts_first_lines = [
         prompt.split("\n")[0],
         instructions[0],
-        extra_prompt if extra_prompt else ""
+        extra_prompt if extra_prompt else "",
     ]
 
     # prompts_first_lines = [prompt.split("\n")[0], instructions[0], reel_script_prompt()[0]]
