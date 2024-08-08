@@ -20,10 +20,16 @@ import json
 from typing import List, Dict, Any
 from utils import chat_response_streamer, is_sensitive_content
 from intro_knowledge_base import knowledge_base
+from phi.llm.aws.claude import Claude
+from phi.llm.openai import OpenAIChat
 
 # import prompt
 from system_prompt import prompt
-from system_prompt import instructions, extra_instructions_prompt, speech_to_speech_prompt
+from system_prompt import (
+    instructions,
+    extra_instructions_prompt,
+    speech_to_speech_prompt,
+)
 from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
 
 logger = logging.getLogger(__name__)
@@ -114,44 +120,6 @@ app.add_middleware(
 )
 
 
-def get_dynamic_instructions(template_category):
-    if template_category == "REELS_IDEAS":
-        specific_instructions = [
-            "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
-            "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
-            "3. If Needed, Search from the Web: Utilize external sources like DuckDuckGo to gather additional information if required.",
-            "4. Personalize the Reel Idea: Use the collected data my saved profile information to personalize the reel idea according to the user's preferences and the template's requirements.",
-            "5. Tone: Ensure the tone of the personalized template is selected by the user.",
-            "6. Format: Maintain the original format of the template.",
-            "7. Length: Ensure the personalized template does not exceed 350 words.",
-        ]
-    elif template_category == "STORY_IDEAS":
-        specific_instructions = [
-            "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
-            "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
-            "3. If Needed, Search from the Web: Utilize external sources like DuckDuckGo to gather additional information if required.",
-            "4. Personalize the Story Idea: Use the collected data my saved profile information to personalize the story idea according to the user's preferences and the template's requirements.",
-            "5. Tone: Ensure the tone of the personalized story idea is selected by the user.",
-            "6. Format: Maintain the original format of the story idea.",
-            "7. Length: Ensure the personalized story idea does not exceed 350 words.",
-        ]
-    elif template_category == "TODAYS_PLAN":
-        specific_instructions = [
-            "This is a 'Today's Plan' template.",
-            "1. Understand the Template's Purpose and Elements: Familiarize yourself with the purpose of the template and the key elements it contains.",
-            "2. Collect Data: Identify the user's preferences and any custom variables in the template. Based on the user's preferences, determine if additional information is needed to complete the custom variables. Ask the user one question at a time to gather the necessary data. Wait for the user's response before asking the next question. Limit the total number of questions to a maximum of 5.",
-            "3. If Needed, Search from the Web: Utilize external sources like DuckDuckGo to gather additional information if required.",
-            "4. Personalize the Idea: Use the collected data and my saved profile information to personalize the idea according to the user's preferences and the template's requirements.",
-            "5. Tone: Ensure the tone of the personalized idea is selected by the user.",
-            "6. Format: Maintain the original format of the idea.",
-            "7. Length: Ensure the personalized idea does not exceed 350 words.",
-        ]
-    else:
-        specific_instructions = []
-
-    return specific_instructions
-
-
 # def create_assistant_params(
 #     run_id: Optional[str],
 #     user_id: Optional[str],
@@ -192,7 +160,7 @@ def get_dynamic_instructions(template_category):
 #         ),
 #         "prevent_hallucinations": True,
 #     }
-    
+
 #     if include_assistant_data:
 #         assistant_params["assistant_data"] = {
 #             "template_title": template_title,
@@ -209,6 +177,7 @@ def get_dynamic_instructions(template_category):
 
 #     return assistant_params
 
+
 def create_assistant_params(
     run_id: Optional[str],
     user_id: Optional[str],
@@ -217,9 +186,14 @@ def create_assistant_params(
     template_id: Optional[str] = None,
     template_tag: Optional[str] = None,
     include_assistant_data: bool = True,
-    is_speech_to_speech: bool = False
+    is_speech_to_speech: bool = False,
 ) -> dict:
     assistant_params = {
+        # "llm": Claude(
+        #     model="claude-3-sonnet-20240229",
+        #     api_key=
+        # ),
+        "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=400, temperature=0.3),
         "description": prompt,
         "instructions": instructions.copy(),  # Create a copy to modify
         "run_id": run_id,
@@ -253,7 +227,7 @@ def create_assistant_params(
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
     if is_speech_to_speech:
         assistant_params["instructions"].extend(speech_to_speech_prompt)
-    
+
     if include_assistant_data:
         assistant_params["assistant_data"] = {
             "template_title": template_title,
@@ -286,7 +260,7 @@ def get_assistant(
     template_title: Optional[str] = None,
     template_id: Optional[str] = None,
     template_tag: Optional[str] = None,
-    is_speech_to_speech: bool = False
+    is_speech_to_speech: bool = False,
 ) -> Assistant:
     assistant_params = create_assistant_params(
         run_id=run_id,
@@ -296,26 +270,36 @@ def get_assistant(
         template_id=template_id,
         template_tag=template_tag,
         include_assistant_data=True,
-        is_speech_to_speech=is_speech_to_speech
+        is_speech_to_speech=is_speech_to_speech,
     )
     return Assistant(**assistant_params)
 
 
 def get_assistant2(
-    run_id: Optional[str], user_id: Optional[str], template_id: Optional[str] = None, is_speech_to_speech: bool = False
+    run_id: Optional[str],
+    user_id: Optional[str],
+    template_id: Optional[str] = None,
+    is_speech_to_speech: bool = False,
 ) -> Assistant:
     assistant_params = create_assistant_params(
         run_id=run_id,
         user_id=user_id,
         template_id=template_id,
         include_assistant_data=False,
-        is_speech_to_speech=is_speech_to_speech
+        is_speech_to_speech=is_speech_to_speech,
     )
     return Assistant(**assistant_params)
 
+
 def get_assistant_for_chat_summary(
-    run_id: Optional[str], user_id: Optional[str]) -> Assistant:
+    run_id: Optional[str], user_id: Optional[str]
+) -> Assistant:
     assistant_params = {
+        # "llm": Claude(
+        #     model="anthropic.claude-3-sonnet-20240229-v1:0",
+        #     api_key=
+        # ),
+        "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=400, temperature=0.3),
         "description": prompt,
         "instructions": instructions,
         "run_id": run_id,
@@ -378,14 +362,14 @@ async def chat(body: ChatRequest):
             template_title=body.template_title,
             template_id=body.template_id,
             template_tag=body.template_tag,
-            is_speech_to_speech=body.is_speech_to_speech
+            is_speech_to_speech=body.is_speech_to_speech,
         )
         if is_new_session
         else get_assistant2(
             run_id=run_id,
             user_id=body.user_id,
             template_id=body.template_id,
-            is_speech_to_speech=body.is_speech_to_speech
+            is_speech_to_speech=body.is_speech_to_speech,
         )
     )
     # assistant.knowledge_base.load(recreate=False)

@@ -47,7 +47,7 @@ extra_instructions_prompt = [
     '1. Knowledge base',
     '2. Database for user\'s profile data and chat history',
     '3. Web search tool',
-    'If you need to use any tools, indicate which tool you\'re using before presenting the information.'
+    # 'If you need to use any tools, indicate which tool you\'re using before presenting the information.'
 ]
 
 # Speech-to-speech specific instructions
