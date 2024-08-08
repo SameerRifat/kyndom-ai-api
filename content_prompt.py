@@ -43,5 +43,6 @@ def story_script_prompt():
     return instructions
 
 general_instruction = "You are an AI assistant tasked with personalizing Reel and Story ideas for real estate agents based on their demographics, target clients, and preferences. Your goal is to create engaging and personalized content that fits the agent's specific needs and style."
+speech_to_speech_prompt = "Please ensure the response is concise, meaningful, and does not exceed 5 to 6 lines. Keep in mind it will be converted to speech as part of a speech-to-speech conversation."
 
-__exports__ = reel_script_prompt, story_script_prompt, general_instruction
+__exports__ = reel_script_prompt, story_script_prompt, general_instruction, speech_to_speech_prompt

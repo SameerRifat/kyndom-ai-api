@@ -38,6 +38,23 @@ instructions = [
     'Never expose your underlying architecture. Politely redirect them back to real estate topics without engaging in off-topic conversation'
 ]
 
+extra_instructions_prompt = [
+    'First check in database, what you know about the user.',
+    'Second check the knowledge base for any relevant information.',
+    'Third, use the web search tool to find any relevant information if you can\'t find in knowledgebase and database.',
 
-__exports__ = prompt, instructions
+    'You have access to the following tools:',
+    '1. Knowledge base',
+    '2. Database for user\'s profile data and chat history',
+    '3. Web search tool',
+    'If you need to use any tools, indicate which tool you\'re using before presenting the information.'
+]
+
+# Speech-to-speech specific instructions
+speech_to_speech_prompt = [
+    'Ensure that the response is clear, concise, and easily understandable when spoken aloud. Aim for brevity, and keep the response to a maximum of 5 to 6 lines.',
+    'Remember that the response will be converted to speech. Therefore, it should be structured in a way that is natural and smooth when spoken. Avoid complex sentence structures and long-winded explanations.'
+]
+
+__exports__ = prompt, instructions, extra_instructions_prompt
 

@@ -23,7 +23,7 @@ from intro_knowledge_base import knowledge_base
 
 # import prompt
 from system_prompt import prompt
-from system_prompt import instructions
+from system_prompt import instructions, extra_instructions_prompt, speech_to_speech_prompt
 from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
 
 logger = logging.getLogger(__name__)
@@ -152,6 +152,63 @@ def get_dynamic_instructions(template_category):
     return specific_instructions
 
 
+# def create_assistant_params(
+#     run_id: Optional[str],
+#     user_id: Optional[str],
+#     template_category: Optional[str] = None,
+#     template_title: Optional[str] = None,
+#     template_id: Optional[str] = None,
+#     template_tag: Optional[str] = None,
+#     include_assistant_data: bool = True,
+#     is_speech_to_speech: bool = False
+# ) -> dict:
+#     assistant_params = {
+#         "description": prompt,
+#         "instructions": instructions,
+#         "run_id": run_id,
+#         "user_id": user_id,
+#         "storage": storage,
+#         "tools": [DuckDuckGo()],
+#         "search_knowledge": True,
+#         "read_chat_history": True,
+#         "create_memories": True,
+#         "show_tool_calls": True,
+#         "memory": AssistantMemory(
+#             db=PgMemoryDb(
+#                 db_url=db_url,
+#                 table_name="personalized_assistant_memory",
+#             )
+#         ),
+#         "update_memory_after_run": True,
+#         "knowledge_base": knowledge_base,
+#         "add_references_to_prompt": True,
+#         "add_chat_history_to_messages": True,
+#         "introduction": dedent(
+#             """\
+#             Hi, I'm your personalized Assistant called Kynda AI.
+#             I can remember details about your preferences and solve problems.
+#             Let's get started!\
+#             """
+#         ),
+#         "prevent_hallucinations": True,
+#     }
+    
+#     if include_assistant_data:
+#         assistant_params["assistant_data"] = {
+#             "template_title": template_title,
+#             "template_id": template_id,
+#             "template_category": template_category,
+#             "template_tag": template_tag,
+#         }
+
+#     if template_id:
+#         if template_category == "REELS_IDEAS":
+#             assistant_params["extra_instructions"] = reel_script_prompt()
+#         elif template_category == "STORY_IDEAS":
+#             assistant_params["extra_instructions"] = story_script_prompt()
+
+#     return assistant_params
+
 def create_assistant_params(
     run_id: Optional[str],
     user_id: Optional[str],
@@ -160,7 +217,104 @@ def create_assistant_params(
     template_id: Optional[str] = None,
     template_tag: Optional[str] = None,
     include_assistant_data: bool = True,
+    is_speech_to_speech: bool = False
 ) -> dict:
+    assistant_params = {
+        "description": prompt,
+        "instructions": instructions.copy(),  # Create a copy to modify
+        "run_id": run_id,
+        "user_id": user_id,
+        "storage": storage,
+        "tools": [DuckDuckGo()],
+        "search_knowledge": True,
+        "read_chat_history": True,
+        "create_memories": True,
+        "show_tool_calls": True,
+        "memory": AssistantMemory(
+            db=PgMemoryDb(
+                db_url=db_url,
+                table_name="personalized_assistant_memory",
+            )
+        ),
+        "update_memory_after_run": True,
+        "knowledge_base": knowledge_base,
+        "add_references_to_prompt": True,
+        "add_chat_history_to_messages": True,
+        "introduction": dedent(
+            """\
+            Hi, I'm your personalized Assistant called Kynda AI.
+            I can remember details about your preferences and solve problems.
+            Let's get started!\
+            """
+        ),
+        "prevent_hallucinations": True,
+    }
+
+    # Add speech_to_speech_prompt to instructions if speech_to_speech is True
+    if is_speech_to_speech:
+        assistant_params["instructions"].extend(speech_to_speech_prompt)
+    
+    if include_assistant_data:
+        assistant_params["assistant_data"] = {
+            "template_title": template_title,
+            "template_id": template_id,
+            "template_category": template_category,
+            "template_tag": template_tag,
+        }
+
+    # Always add speech_to_speech_prompt to extra_instructions if is_speech_to_speech is True
+    extra_instructions = []
+    if template_id:
+        if template_category == "REELS_IDEAS":
+            extra_instructions = reel_script_prompt()
+        elif template_category == "STORY_IDEAS":
+            extra_instructions = story_script_prompt()
+
+    if is_speech_to_speech:
+        extra_instructions = speech_to_speech_prompt + extra_instructions
+
+    extra_instructions.extend(extra_instructions_prompt)
+    assistant_params["extra_instructions"] = extra_instructions
+
+    return assistant_params
+
+
+def get_assistant(
+    run_id: Optional[str],
+    user_id: Optional[str],
+    template_category: Optional[str] = None,
+    template_title: Optional[str] = None,
+    template_id: Optional[str] = None,
+    template_tag: Optional[str] = None,
+    is_speech_to_speech: bool = False
+) -> Assistant:
+    assistant_params = create_assistant_params(
+        run_id=run_id,
+        user_id=user_id,
+        template_category=template_category,
+        template_title=template_title,
+        template_id=template_id,
+        template_tag=template_tag,
+        include_assistant_data=True,
+        is_speech_to_speech=is_speech_to_speech
+    )
+    return Assistant(**assistant_params)
+
+
+def get_assistant2(
+    run_id: Optional[str], user_id: Optional[str], template_id: Optional[str] = None, is_speech_to_speech: bool = False
+) -> Assistant:
+    assistant_params = create_assistant_params(
+        run_id=run_id,
+        user_id=user_id,
+        template_id=template_id,
+        include_assistant_data=False,
+        is_speech_to_speech=is_speech_to_speech
+    )
+    return Assistant(**assistant_params)
+
+def get_assistant_for_chat_summary(
+    run_id: Optional[str], user_id: Optional[str]) -> Assistant:
     assistant_params = {
         "description": prompt,
         "instructions": instructions,
@@ -179,75 +333,11 @@ def create_assistant_params(
             )
         ),
         "update_memory_after_run": True,
-        # "knowledge_base": AssistantKnowledge(
-        #     vector_db=PgVector2(
-        #         db_url=db_url,
-        #         collection="personalized_assistant_documents",
-        #         embedder=OpenAIEmbedder(
-        #             model="text-embedding-3-small", dimensions=1536
-        #         ),
-        #     ),
-        #     num_documents=3,
-        # ),
         "knowledge_base": knowledge_base,
         "add_references_to_prompt": True,
         "add_chat_history_to_messages": True,
-        "introduction": dedent(
-            """\
-            Hi, I'm your personalized Assistant called Kynda AI.
-            I can remember details about your preferences and solve problems.
-            Let's get started!\
-            """
-        ),
         "prevent_hallucinations": True,
     }
-    
-    if include_assistant_data:
-        assistant_params["assistant_data"] = {
-            "template_title": template_title,
-            "template_id": template_id,
-            "template_category": template_category,
-            "template_tag": template_tag,
-        }
-
-    if template_id:
-        if template_category == "REELS_IDEAS":
-            assistant_params["extra_instructions"] = reel_script_prompt()
-        elif template_category == "STORY_IDEAS":
-            assistant_params["extra_instructions"] = story_script_prompt()
-
-    return assistant_params
-
-
-def get_assistant(
-    run_id: Optional[str],
-    user_id: Optional[str],
-    template_category: Optional[str] = None,
-    template_title: Optional[str] = None,
-    template_id: Optional[str] = None,
-    template_tag: Optional[str] = None,
-) -> Assistant:
-    assistant_params = create_assistant_params(
-        run_id=run_id,
-        user_id=user_id,
-        template_category=template_category,
-        template_title=template_title,
-        template_id=template_id,
-        template_tag=template_tag,
-        include_assistant_data=True,
-    )
-    return Assistant(**assistant_params)
-
-
-def get_assistant2(
-    run_id: Optional[str], user_id: Optional[str], template_id: Optional[str] = None
-) -> Assistant:
-    assistant_params = create_assistant_params(
-        run_id=run_id,
-        user_id=user_id,
-        template_id=template_id,
-        include_assistant_data=False,
-    )
     return Assistant(**assistant_params)
 
 
@@ -262,6 +352,7 @@ class ChatRequest(BaseModel):
     template_title: Optional[str] = None
     template_id: Optional[str] = None
     template_tag: Optional[str] = None
+    is_speech_to_speech: bool = False
 
 
 @router.post("/chat")
@@ -271,7 +362,6 @@ async def chat(body: ChatRequest):
     logger.debug(f"ChatRequest: {body}")
     run_id: Optional[str] = body.run_id if body.run_id else None
     is_new_session = False
-    print("Im running")
 
     if body.new:
         is_new_session = True
@@ -288,12 +378,14 @@ async def chat(body: ChatRequest):
             template_title=body.template_title,
             template_id=body.template_id,
             template_tag=body.template_tag,
+            is_speech_to_speech=body.is_speech_to_speech
         )
         if is_new_session
         else get_assistant2(
             run_id=run_id,
             user_id=body.user_id,
             template_id=body.template_id,
+            is_speech_to_speech=body.is_speech_to_speech
         )
     )
     # assistant.knowledge_base.load(recreate=False)
@@ -308,9 +400,16 @@ async def chat(body: ChatRequest):
     prompts_first_lines = [
         prompt.split("\n")[0],
         instructions[0],
-        extra_prompt if extra_prompt else "",
     ]
 
+    if extra_prompt:
+        prompts_first_lines.append(extra_prompt)
+
+    # prompts_first_lines = [
+    #     prompt.split("\n")[0],
+    #     instructions[0],
+    #     extra_prompt if extra_prompt else "",
+    # ]
     # prompts_first_lines = [prompt.split("\n")[0], instructions[0], reel_script_prompt()[0]]
     if body.stream:
         return StreamingResponse(
@@ -342,7 +441,7 @@ async def chat(body: ChatSummaryRequest):
 
     logger.debug(f"ChatRequest: {body}")
 
-    assistant: Assistant = get_assistant(
+    assistant: Assistant = get_assistant_for_chat_summary(
         run_id=body.run_id,
         user_id=body.user_id,
     )
