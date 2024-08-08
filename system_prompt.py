@@ -56,5 +56,12 @@ speech_to_speech_prompt = [
     'Remember that the response will be converted to speech. Therefore, it should be structured in a way that is natural and smooth when spoken. Avoid complex sentence structures and long-winded explanations.'
 ]
 
-__exports__ = prompt, instructions, extra_instructions_prompt
+summary_instructions = [
+    "Generate a 4-6 word summary title of the chat's purpose.",
+    "Provide only the summary words.",
+    "Do not include any tool calls or additional details.",
+    "Focus solely on the chat content to extract the summary title."
+]
+
+__exports__ = prompt, instructions, extra_instructions_prompt, summary_instructions
 
