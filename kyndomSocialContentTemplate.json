@@ -1,0 +1,818 @@
+[{
+  "_id": {
+    "$oid": "663000d9daabe0b917c17496"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Test Template 1234",
+  "canvaUrl": "test.com/test12345",
+  "commentsText": "test",
+  "hashtagText": "test",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "createdAt": {
+    "$date": "2024-04-29T20:19:37.622Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    }
+  ],
+  "releaseDate": {
+    "$date": "2024-05-07T23:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d07d5c42845fb50763201"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "What I wish I knew, Buying my First Home",
+  "canvaUrl": "https://www.canva.com/design/DAGF5ILP994/D43Mu9HHFl56xEj2iJX0GA/view?utm_content=DAGF5ILP994&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No comments",
+  "hashtagText": "NO hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-16T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T20:45:09.350Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "666c3828924212b83b1e76e6"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d0af8769c7b39a10a1eeb"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "The last thing I want for my Buyers",
+  "canvaUrl": "https://www.canva.com/design/DAGF5ND4rwM/OoE3_b5nlAYqUxJFgaWf8A/view?utm_content=DAGF5ND4rwM&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-05T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T20:58:32.347Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d0c79df7542a03ae37841"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "How old do you think the average First-time Home Buyer is?",
+  "canvaUrl": "https://www.canva.com/design/DAGF5er2J6M/fpJpGhlmnSZ0PFFrdriAGQ/view?utm_content=DAGF5er2J6M&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-07T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T21:04:57.690Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "665e076d0c6acf924c3aa3c4"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d0df0757ed71cc0e998cc"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "My Secret for getting you the most Offers on your Home?",
+  "canvaUrl": "https://www.canva.com/design/DAGF5e4aJsk/CguREwjqs32ryoOubvr0-w/view?utm_content=DAGF5e4aJsk&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "releaseDate": {
+    "$date": "2024-06-03T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T21:11:12.766Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d0fe9df7542a03ae37846"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Moving to {City Name} - Consider this Story",
+  "canvaUrl": "https://www.canva.com/design/DAGF5Rz05nU/5F29VbhZn5eBfRgGgVtVzg/view?utm_content=DAGF5Rz05nU&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-10T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T21:19:37.134Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "664d11ee98b43bedf9036470"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Businesses I Love all Year Round - My Top 5 in [City Name]",
+  "canvaUrl": "https://www.canva.com/design/DAGF5Q8jqU4/T006vU3Ura0NCkdZ5gLL_g/view?utm_content=DAGF5Q8jqU4&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f39b8753bce7515c6aae7"
+  },
+  "releaseDate": {
+    "$date": "2024-06-02T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T21:28:14.056Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    },
+    {
+      "$oid": "664a2cc06c644620435742f5"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d1c1620a02a5d741671cc"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Avoid Moving to {City Name} - Unless you can Handle this",
+  "canvaUrl": "https://www.canva.com/design/DAGF5qASPOk/3Qc9S6Gv6Brh3eZb8bUbcQ/view?utm_content=DAGF5qASPOk&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "releaseDate": {
+    "$date": "2024-06-06T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T22:11:34.357Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d1d5a180609ccf308bee6"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Tight Budget? How to lower your Monthly Mortgage Payment",
+  "canvaUrl": "https://www.canva.com/design/DAGF5g2okW0/NAxmsqAZ-wNO4ZMw7AKyVA/view?utm_content=DAGF5g2okW0&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "releaseDate": {
+    "$date": "2024-06-12T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T22:16:58.347Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    },
+    {
+      "$oid": "664a2cc06c644620435742f5"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d1fe6df4191f7230897d1"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "How to Use the Equity  in Your Home",
+  "canvaUrl": "https://www.canva.com/design/DAGF5iFoD_A/FwoJF0e0RjiJUTsMKr-Mhw/view?utm_content=DAGF5iFoD_A&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-15T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T22:27:50.462Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d21401c06fd5f69fb7486"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "A Day in the Life of a [City Name] Real Estate Agent",
+  "canvaUrl": "https://www.canva.com/design/DAGF5gSrrvA/L4WSqCebqmoXk_6pKvUEew/view?utm_content=DAGF5gSrrvA&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3c4b753bce7515c6aaee"
+  },
+  "releaseDate": {
+    "$date": "2024-06-04T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T22:33:36.976Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d241d9514236e2d6c5510"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "The 3 Principles that Guide my Real Estate Business",
+  "canvaUrl": "https://www.canva.com/design/DAGF5lrh6oM/3rQps-dc6rZOf2OuvqNPIQ/view?utm_content=DAGF5lrh6oM&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "releaseDate": {
+    "$date": "2024-06-18T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T22:45:49.216Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d27716925320e506d70d4"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Why you need to Work with with a Local Area Expert Real Estate Agent",
+  "canvaUrl": "https://www.canva.com/design/DAGF5pvfbAI/Kf5cmZn8qeLjST5Ixlwjbg/view?utm_content=DAGF5pvfbAI&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "releaseDate": {
+    "$date": "2024-06-24T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:00:01.592Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    },
+    {
+      "$oid": "664a2cc06c644620435742f5"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d2880eaafdfef424c2766"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "5 Reasons Why [Season] is the Best Time to Buy a Home",
+  "canvaUrl": "https://www.canva.com/design/DAGF51sDsKU/mkHOkhB3ThlO9uXzz0tpvw/view?utm_content=DAGF51sDsKU&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-19T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:04:32.550Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d29d2eaafdfef424c276d"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "5 Essential Tips for First-time Homebuyers in [City Name]",
+  "canvaUrl": "https://www.canva.com/design/DAGF56qabNo/gtWkkGme9O5CsQQl9E2R5Q/view?utm_content=DAGF56qabNo&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-23T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:10:10.707Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d2aafb5d7f1aad7296bd3"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Can you Guess the Price?",
+  "canvaUrl": "https://www.canva.com/design/DAGF5_ogq9Y/E48SnV8HXVnKa-_KE0i-kw/view?utm_content=DAGF5_ogq9Y&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3b35753bce7515c6aaec"
+  },
+  "releaseDate": {
+    "$date": "2024-06-08T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:13:51.287Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d2ba3aede6b276beaf5ad"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Your Dream Home Awaits in {City Name}",
+  "canvaUrl": "https://www.canva.com/design/DAGF5_upnW8/o6QhZF-ZxzlxRUBlI6vppw/view?utm_content=DAGF5_upnW8&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3a0b753bce7515c6aae8"
+  },
+  "releaseDate": {
+    "$date": "2024-06-11T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:17:55.983Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d2d3b8c8d736454e23cb8"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "The Do's & Don'ts of Pricing Your [City Name] Home",
+  "canvaUrl": "https://www.canva.com/design/DAGF57K3oMY/Y-bcaXPFWwMI882Mv0u7gg/view?utm_content=DAGF57K3oMY&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "releaseDate": {
+    "$date": "2024-06-09T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:24:43.978Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d2e3de661a8ddadad0698"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "5 Ways to Boost your Home's Value before Selling",
+  "canvaUrl": "https://www.canva.com/design/DAGF57LDGy4/S_YUo8COPUuWIrhMV2YbxQ/view?utm_content=DAGF57LDGy4&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "releaseDate": {
+    "$date": "2024-06-13T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:29:01.957Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    },
+    {
+      "$oid": "666c75991e00f793a9bfafd1"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d2f499711571a928d4b5a"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "The Power of Home Staging from a Local Area Expert Agent ",
+  "canvaUrl": "https://www.canva.com/design/DAGF5wz2jQU/ODLLcd2gvO8Z7MkJYME31w/view?utm_content=DAGF5wz2jQU&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "releaseDate": {
+    "$date": "2024-06-21T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:33:29.388Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d3067e661a8ddadad06a0"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "The Seller’s Journey - From Listed to Sold",
+  "canvaUrl": "https://www.canva.com/design/DAGF5zEXaVw/BPmNQtbn2g2hf21sBb-kxw/view?utm_content=DAGF5zEXaVw&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "releaseDate": {
+    "$date": "2024-06-17T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:38:15.221Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "6605aab2661011a1855c321c"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d31e07b9f1eefc65b2b17"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": " The Power of Local Market Knowledge",
+  "canvaUrl": "https://www.canva.com/design/DAGF511nU_o/FZ6z2F3Dej4sboJWZWEdEQ/view?utm_content=DAGF511nU_o&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "releaseDate": {
+    "$date": "2024-06-29T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:44:32.897Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "665e076d0c6acf924c3aa3c4"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d3553b47c0efa8a832928"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Can you Guess the Most Popular Home Feature in [City Name]?",
+  "canvaUrl": "https://www.canva.com/design/DAGF55D_XII/_T38BFS_cO4rglN_HYMqSQ/view?utm_content=DAGF55D_XII&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3b35753bce7515c6aaec"
+  },
+  "releaseDate": {
+    "$date": "2024-06-14T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-21T23:59:15.994Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "664d377282898980f5b9a9b0"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": " Just Listed: Stunning [Style] Home in [Neighborhood]",
+  "canvaUrl": "https://www.canva.com/design/DAGF6Niv9Ts/6fngoBRlVoT-VmzFX5RUYQ/view?utm_content=DAGF6Niv9Ts&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3ca9753bce7515c6aaef"
+  },
+  "releaseDate": {
+    "$date": "2024-06-01T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T00:08:18.724Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "664a2cc06c644620435742f5"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d3994e5b1bfaf8e93ffde"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Discover the Best Outdoor Adventures in [City Name]",
+  "canvaUrl": "https://www.canva.com/design/DAGF6Kho2Lw/BV32C4BuFtVWSdwS1WnTlA/view?utm_content=DAGF6Kho2Lw&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3a3d753bce7515c6aae9"
+  },
+  "releaseDate": {
+    "$date": "2024-06-20T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T00:17:24.311Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "665df23b089e1d4ec1a28396"
+    },
+    {
+      "$oid": "666c3828924212b83b1e76e6"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d3aeafecc263cb0bcfc7a"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "[City Name]'s Top 5 Neighborhoods for Young Professionals",
+  "canvaUrl": "https://www.canva.com/design/DAGF6N-fbkI/V0ppDOHHOfiqcJuStXX2nA/view?utm_content=DAGF6N-fbkI&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38ea753bce7515c6aae6"
+  },
+  "releaseDate": {
+    "$date": "2024-06-27T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T00:23:06.585Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "665e076d0c6acf924c3aa3c4"
+    },
+    {
+      "$oid": "666c75991e00f793a9bfafd1"
+    },
+    {
+      "$oid": "666c3828924212b83b1e76e6"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d3bba1f89fb3f1cc0306c"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Upgrade Your Home Office: 5 Tips for a Productive Workspace",
+  "canvaUrl": "https://www.canva.com/design/DAGF6OoQACQ/fF902WsLJbF0NF-_Ecc3lw/view?utm_content=DAGF6OoQACQ&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3a3d753bce7515c6aae9"
+  },
+  "releaseDate": {
+    "$date": "2024-06-25T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T00:26:34.654Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "666c75991e00f793a9bfafd1"
+    },
+    {
+      "$oid": "666c3828924212b83b1e76e6"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664d3cfe103c575f8118860d"
+  },
+  "category": "SOCIAL_MEDIA",
+  "title": "Selling Your [City Name] Home? Avoid These Common Mistakes!",
+  "canvaUrl": "https://www.canva.com/design/DAGF6PK6Ghw/6bLBlmlf5zySXZHf8neE2g/view?utm_content=DAGF6PK6Ghw&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "releaseDate": {
+    "$date": "2024-06-26T07:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T00:31:58.183Z"
+  },
+  "likedByUserIds": [
+    {
+      "$oid": "666c75991e00f793a9bfafd1"
+    },
+    {
+      "$oid": "666c3828924212b83b1e76e6"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "664e19886c3deb2ceeee20ad"
+  },
+  "category": "STORY_TEMPLATES",
+  "title": "What's in my Car",
+  "canvaUrl": "https://www.canva.com/design/DAGF-DktM2g/gJiDXrN9OvL8sayNhde5hw/view?utm_content=DAGF-DktM2g&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T16:12:56.507Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "664e1ab46c3deb2ceeee20af"
+  },
+  "category": "STORY_TEMPLATES",
+  "title": "Real Estate Investing Quiz",
+  "canvaUrl": "https://www.canva.com/design/DAGF-HGEDbo/2kSaxVkWLtHbQbpcwpjl3g/view?utm_content=DAGF-HGEDbo&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3874753bce7515c6aae4"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T16:17:56.153Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "664e1b636c3deb2ceeee20b1"
+  },
+  "category": "STORY_TEMPLATES",
+  "title": "Local Holiday Lights",
+  "canvaUrl": "https://www.canva.com/design/DAGF-Ez8p9g/CHLRFOosvX5MBIlAhXn7OA/view?utm_content=DAGF-Ez8p9g&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f39b8753bce7515c6aae7"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T16:20:51.606Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "664e1bf36c3deb2ceeee20b3"
+  },
+  "category": "STORY_TEMPLATES",
+  "title": "Interactive Market Update",
+  "canvaUrl": "https://www.canva.com/design/DAGF-Hb1kUI/juhf5Tdnx2iJrk7QzRqARw/view?utm_content=DAGF-Hb1kUI&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3a7f753bce7515c6aaea"
+  },
+  "createdAt": {
+    "$date": "2024-05-22T16:23:15.929Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "66560031a542afbd920872a5"
+  },
+  "category": "BRANDING",
+  "title": "Open House Template 1 -  Modern Minimalist Theme",
+  "canvaUrl": "https://www.canva.com/design/DAGGiDbvBkI/wAsfVf86D2GoKUDcSrl50w/view?utm_content=DAGGiDbvBkI&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Comments",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3ca9753bce7515c6aaef"
+  },
+  "createdAt": {
+    "$date": "2024-05-28T16:02:57.680Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "665600e3a542afbd920872a7"
+  },
+  "category": "BRANDING",
+  "title": "Open House Template 2 - Modern Minimalist Theme",
+  "canvaUrl": "https://www.canva.com/design/DAGGiEJsWcE/8ZwfUGpo1R5WJNMoJlZZNg/view?utm_content=DAGGiEJsWcE&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Captions",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3ca9753bce7515c6aaef"
+  },
+  "createdAt": {
+    "$date": "2024-05-28T16:05:55.672Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "66560167a542afbd920872a9"
+  },
+  "category": "BRANDING",
+  "title": "Just Listed Template 1 - Modern Minimalist Theme",
+  "canvaUrl": "https://www.canva.com/design/DAGGiAKPKdA/29R4v9fecLjbqKdRGVP-VQ/view?utm_content=DAGGiAKPKdA&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No captions",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "createdAt": {
+    "$date": "2024-05-28T16:08:07.928Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "66560200a542afbd920872ab"
+  },
+  "category": "BRANDING",
+  "title": "For Sale Template 1 - Modern Minimalist Theme",
+  "canvaUrl": "https://www.canva.com/design/DAGGiOQHVig/BeCgGxYI6JBi1eQMXq_f7g/view?utm_content=DAGGiOQHVig&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Captions",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f38af753bce7515c6aae5"
+  },
+  "createdAt": {
+    "$date": "2024-05-28T16:10:40.412Z"
+  },
+  "likedByUserIds": []
+},
+{
+  "_id": {
+    "$oid": "666267a38a3837c7375bf0c3"
+  },
+  "category": "BRANDING",
+  "title": "Transaction Timeline Checklist",
+  "canvaUrl": "https://www.canva.com/design/DAGHaaf9ruU/CJWc3QlGeNrUXVNqp78p9Q/view?utm_content=DAGHaaf9ruU&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Captions",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f3ca9753bce7515c6aaef"
+  },
+  "createdAt": {
+    "$date": "2024-06-07T01:51:31.133Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "666268cc8a3837c7375bf0c6"
+  },
+  "category": "BRANDING",
+  "title": "Local’s  Guide",
+  "canvaUrl": "https://www.canva.com/design/DAGHacaAEng/Jo9shBOP0Q12vi-dfGgRzw/view?utm_content=DAGHacaAEng&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+  "commentsText": "No Captions",
+  "hashtagText": "No Hashtags",
+  "tagId": {
+    "$oid": "661f39b8753bce7515c6aae7"
+  },
+  "createdAt": {
+    "$date": "2024-06-07T01:56:28.949Z"
+  }
+}]

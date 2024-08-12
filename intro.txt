@@ -147,3 +147,32 @@ Kyndom is a digital platform designed for real estate professionals, integrating
 ### 7.3 Fairness and Bias Mitigation
 - Ongoing efforts to identify and mitigate potential biases in AI algorithms
 - Ensuring equal and fair representation in generated content and recommendations
+
+Here's the list of use cases you'll be working with:
+<use case>
+{{1. Listing presentations: This refers to the process where an agent presents their marketing plan and strategy to a potential seller, aiming to secure the listing of the property.
+2. Expired listing conversion: This involves approaching homeowners whose property listings have expired without selling, and convincing them to relist with you.
+3. FSBO prospecting: FSBO stands for "For Sale By Owner." This use case involves reaching out to homeowners who are trying to sell their property without an agent, and persuading them to use your services instead.
+4. Price reduction discussions: These are conversations with sellers about lowering the asking price of their property, often necessary when a property isn't attracting enough interest at its current price.
+5. Multiple offer negotiations: This scenario occurs when multiple buyers are interested in the same property, requiring the agent to manage and negotiate between various offers to get the best deal for their client.
+6. Buyer qualification: This process involves assessing a potential buyer's financial situation and needs to determine if they're ready to purchase a property and what kind of properties they can afford.
+7. Crisis management in transactions: This refers to handling unexpected issues that can arise during a real estate transaction, such as failed inspections, financing problems, or title issues.
+8. High-profile client interactions: This involves working with celebrity or high-net-worth clients who may have unique needs, such as privacy concerns or complex financial situations.
+9. Competitive differentiation pitches: These are presentations or conversations where an agent explains why they're better suited to represent a client compared to other agents.
+10. Sphere of influence reactivation: This involves reconnecting with past clients, friends, family, and acquaintances to generate new leads and referrals.
+11. Objection handling: This refers to addressing and overcoming common concerns or objections that clients might have during the buying or selling process.
+12. Cold calling practice: This involves making unsolicited calls to potential clients to generate leads, a common but challenging prospecting technique in real estate.
+13. Negotiation skill development: This focuses on improving an agent's ability to negotiate effectively on behalf of their clients in various situations.
+14. Client consultations: These are meetings with potential clients to understand their needs, explain the agent's services, and establish a working relationship.
+15. Listing appointment preparation: This involves getting ready for a meeting with a potential seller, including researching the property and preparing marketing materials.
+16. Open house follow-ups: This refers to the process of contacting and nurturing leads generated from an open house event.
+17. Difficult client conversations: These are challenging discussions with clients, such as delivering bad news or managing unrealistic expectations.
+18. Buyer representation agreements: This involves explaining and getting clients to sign contracts that establish the agent as the buyer's exclusive representative.
+19. Referral partner relationship building: This focuses on developing and maintaining relationships with other professionals (like mortgage brokers or home inspectors) for mutual client referrals.
+20. Post-closing follow-ups and testimonials: This involves maintaining contact with clients after a sale is complete and requesting reviews or testimonials for marketing purposes.
+21. Explaining mortgage pre-approvals: This involves educating buyers about the mortgage pre-approval process and its importance in the home buying journey.
+22. Market condition explanations: This refers to the ability to clearly explain current real estate market trends and how they might affect a client's buying or selling decisions.
+23. Commission negotiations: This involves discussing and justifying the agent's fee structure with clients, potentially needing to negotiate terms.
+24. Overcoming buyer hesitation: This focuses on addressing concerns and encouraging decisive action from buyers who are uncertain about making an offer or completing a purchase.
+25. Seller counseling in declining markets: This involves advising sellers on strategies and expectations when market conditions are unfavorable for selling.}}
+</use case>
