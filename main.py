@@ -19,6 +19,7 @@ from sqlalchemy.orm import sessionmaker
 import json
 from typing import List, Dict, Any
 from utils import chat_response_streamer, is_sensitive_content
+
 # from intro_knowledge_base import intro_knowledge_base
 # from kyndom_knowledge_base import kyndom_knowledge_base
 from combined_knowledge_base import knowledge_base
@@ -31,7 +32,7 @@ from system_prompt import (
     instructions,
     extra_instructions_prompt,
     speech_to_speech_prompt,
-    speech_to_speech_instructions
+    speech_to_speech_instructions,
 )
 from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
 
@@ -112,7 +113,13 @@ app = FastAPI()
 router = APIRouter()
 
 # Configure CORS
-origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001", "https://app.kyndom.com"]
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "https://app.kyndom.com",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -121,6 +128,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 def create_assistant_params(
     run_id: Optional[str],
@@ -140,7 +148,9 @@ def create_assistant_params(
         "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=400, temperature=0.3),
         "description": prompt,
         # "instructions": instructions.copy(),  # Create a copy to modify
-        "instructions": speech_to_speech_instructions if is_speech_to_speech else instructions,
+        "instructions": (
+            speech_to_speech_instructions if is_speech_to_speech else instructions
+        ),
         "run_id": run_id,
         "user_id": user_id,
         "storage": storage,
@@ -167,11 +177,16 @@ def create_assistant_params(
             """
         ),
         "prevent_hallucinations": True,
+        "debug_mode": True,
     }
 
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
     # if is_speech_to_speech:
     #     assistant_params["instructions"].extend(speech_to_speech_prompt)
+    if is_speech_to_speech:
+        assistant_params["add_references_to_prompt"] = False
+        assistant_params["read_chat_history"] = False
+        assistant_params["add_references_to_prompt"] = False
 
     if include_assistant_data:
         assistant_params["assistant_data"] = {
@@ -266,6 +281,7 @@ def get_assistant_for_chat_summary(
         "add_references_to_prompt": True,
         "add_chat_history_to_messages": True,
         "prevent_hallucinations": True,
+        "debug_mode": True,
     }
     return Assistant(**assistant_params)
 
