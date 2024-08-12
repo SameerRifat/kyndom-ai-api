@@ -8,3 +8,4 @@ sqlalchemy
 phidata[aws]
 openai
 duckduckgo-search
+anthropic

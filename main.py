@@ -19,7 +19,9 @@ from sqlalchemy.orm import sessionmaker
 import json
 from typing import List, Dict, Any
 from utils import chat_response_streamer, is_sensitive_content
-from intro_knowledge_base import knowledge_base
+# from intro_knowledge_base import intro_knowledge_base
+# from kyndom_knowledge_base import kyndom_knowledge_base
+from combined_knowledge_base import knowledge_base
 from phi.llm.aws.claude import Claude
 from phi.llm.openai import OpenAIChat
 
@@ -29,6 +31,7 @@ from system_prompt import (
     instructions,
     extra_instructions_prompt,
     speech_to_speech_prompt,
+    speech_to_speech_instructions
 )
 from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
 
@@ -109,7 +112,7 @@ app = FastAPI()
 router = APIRouter()
 
 # Configure CORS
-origins = ["http://localhost:3000", "http://127.0.0.1:3000", "https://app.kyndom.com"]
+origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001", "https://app.kyndom.com"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -118,65 +121,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# def create_assistant_params(
-#     run_id: Optional[str],
-#     user_id: Optional[str],
-#     template_category: Optional[str] = None,
-#     template_title: Optional[str] = None,
-#     template_id: Optional[str] = None,
-#     template_tag: Optional[str] = None,
-#     include_assistant_data: bool = True,
-#     is_speech_to_speech: bool = False
-# ) -> dict:
-#     assistant_params = {
-#         "description": prompt,
-#         "instructions": instructions,
-#         "run_id": run_id,
-#         "user_id": user_id,
-#         "storage": storage,
-#         "tools": [DuckDuckGo()],
-#         "search_knowledge": True,
-#         "read_chat_history": True,
-#         "create_memories": True,
-#         "show_tool_calls": True,
-#         "memory": AssistantMemory(
-#             db=PgMemoryDb(
-#                 db_url=db_url,
-#                 table_name="personalized_assistant_memory",
-#             )
-#         ),
-#         "update_memory_after_run": True,
-#         "knowledge_base": knowledge_base,
-#         "add_references_to_prompt": True,
-#         "add_chat_history_to_messages": True,
-#         "introduction": dedent(
-#             """\
-#             Hi, I'm your personalized Assistant called Kynda AI.
-#             I can remember details about your preferences and solve problems.
-#             Let's get started!\
-#             """
-#         ),
-#         "prevent_hallucinations": True,
-#     }
-
-#     if include_assistant_data:
-#         assistant_params["assistant_data"] = {
-#             "template_title": template_title,
-#             "template_id": template_id,
-#             "template_category": template_category,
-#             "template_tag": template_tag,
-#         }
-
-#     if template_id:
-#         if template_category == "REELS_IDEAS":
-#             assistant_params["extra_instructions"] = reel_script_prompt()
-#         elif template_category == "STORY_IDEAS":
-#             assistant_params["extra_instructions"] = story_script_prompt()
-
-#     return assistant_params
-
 
 def create_assistant_params(
     run_id: Optional[str],
@@ -195,7 +139,8 @@ def create_assistant_params(
         # ),
         "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=400, temperature=0.3),
         "description": prompt,
-        "instructions": instructions.copy(),  # Create a copy to modify
+        # "instructions": instructions.copy(),  # Create a copy to modify
+        "instructions": speech_to_speech_instructions if is_speech_to_speech else instructions,
         "run_id": run_id,
         "user_id": user_id,
         "storage": storage,
@@ -225,8 +170,8 @@ def create_assistant_params(
     }
 
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
-    if is_speech_to_speech:
-        assistant_params["instructions"].extend(speech_to_speech_prompt)
+    # if is_speech_to_speech:
+    #     assistant_params["instructions"].extend(speech_to_speech_prompt)
 
     if include_assistant_data:
         assistant_params["assistant_data"] = {
@@ -317,7 +262,7 @@ def get_assistant_for_chat_summary(
             )
         ),
         "update_memory_after_run": True,
-        "knowledge_base": knowledge_base,
+        # "knowledge_base": knowledge_base,
         "add_references_to_prompt": True,
         "add_chat_history_to_messages": True,
         "prevent_hallucinations": True,
@@ -389,12 +334,6 @@ async def chat(body: ChatRequest):
     if extra_prompt:
         prompts_first_lines.append(extra_prompt)
 
-    # prompts_first_lines = [
-    #     prompt.split("\n")[0],
-    #     instructions[0],
-    #     extra_prompt if extra_prompt else "",
-    # ]
-    # prompts_first_lines = [prompt.split("\n")[0], instructions[0], reel_script_prompt()[0]]
     if body.stream:
         return StreamingResponse(
             chat_response_streamer(
