@@ -33,6 +33,7 @@ from system_prompt import (
     extra_instructions_prompt,
     speech_to_speech_prompt,
     speech_to_speech_instructions,
+    summary_prompt
 )
 from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
 
@@ -177,7 +178,7 @@ def create_assistant_params(
             """
         ),
         "prevent_hallucinations": True,
-        "debug_mode": True,
+        "debug_mode": False,
     }
 
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
@@ -281,7 +282,7 @@ def get_assistant_for_chat_summary(
         "add_references_to_prompt": True,
         "add_chat_history_to_messages": True,
         "prevent_hallucinations": True,
-        "debug_mode": True,
+        "debug_mode": False,
     }
     return Assistant(**assistant_params)
 
@@ -333,6 +334,7 @@ async def chat(body: ChatRequest):
             is_speech_to_speech=body.is_speech_to_speech,
         )
     )
+    print('assistant.extra_instructions: ', assistant.extra_instructions)
     # assistant.knowledge_base.load(recreate=False)
     extra_prompt = general_instruction
 
@@ -385,13 +387,11 @@ async def chat(body: ChatSummaryRequest):
         user_id=body.user_id,
     )
 
-    summary_prompt = f"Generate a 4-6 word summary title of the chat's purpose. Provide only the summary words. Do not write the general purpose title; focus on the current chat to extract the summary title."
-    summary = assistant.run(summary_prompt, stream=False)
+    print('summary_prompt: ', summary_prompt)
 
-    # Updata summary in template_title of assistant_data
-    # assistant.assistant_data["template_title"] = summary
+    summary = assistant.run(f"{summary_prompt}", stream=False)
 
-    return JSONResponse({"response": summary})
+    return JSONResponse({"response": summary.strip('"')})
 
 
 class ChatHistoryRequest(BaseModel):
