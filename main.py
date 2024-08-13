@@ -185,8 +185,7 @@ def create_assistant_params(
     # if is_speech_to_speech:
     #     assistant_params["instructions"].extend(speech_to_speech_prompt)
     if is_speech_to_speech:
-        assistant_params["add_references_to_prompt"] = False
-        assistant_params["read_chat_history"] = False
+        # assistant_params["read_chat_history"] = False
         assistant_params["add_references_to_prompt"] = False
 
     if include_assistant_data:
