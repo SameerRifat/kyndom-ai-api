@@ -146,7 +146,7 @@ def create_assistant_params(
         #     model="claude-3-sonnet-20240229",
         #     api_key=
         # ),
-        "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=400, temperature=0.3),
+        "llm": OpenAIChat(model="gpt-4o", max_tokens=400, temperature=0.3),
         "description": prompt,
         # "instructions": instructions.copy(),  # Create a copy to modify
         "instructions": (
