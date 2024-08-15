@@ -333,7 +333,6 @@ async def chat(body: ChatRequest):
             is_speech_to_speech=body.is_speech_to_speech,
         )
     )
-    print('assistant.extra_instructions: ', assistant.extra_instructions)
     # assistant.knowledge_base.load(recreate=False)
     extra_prompt = general_instruction
 
@@ -385,8 +384,6 @@ async def chat(body: ChatSummaryRequest):
         run_id=body.run_id,
         user_id=body.user_id,
     )
-
-    print('summary_prompt: ', summary_prompt)
 
     summary = assistant.run(f"{summary_prompt}", stream=False)
 
