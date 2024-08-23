@@ -1,12 +1,14 @@
 from typing import List, Generator
 from phi.assistant import Assistant
 from difflib import SequenceMatcher
+import threading
 
 def chat_response_streamer(
     assistant: Assistant,
     message: str,
     is_new_session: bool,
     prompts_first_lines: List[str],
+    cancel_flag: threading.Event
 ) -> Generator:
     if is_new_session:
         yield f"run_id: {assistant.run_id}\n"
@@ -14,6 +16,9 @@ def chat_response_streamer(
     accumulated_chunk = ""
     buffer = ""
     for chunk in assistant.run(message):
+        if cancel_flag.is_set():
+            yield "[CANCELLED]\n\n"
+            return
         accumulated_chunk += chunk
         buffer += chunk
         if is_sensitive_content(accumulated_chunk, prompts_first_lines):
@@ -34,9 +39,7 @@ def chat_response_streamer(
     if buffer:  # Yield any remaining content
         yield buffer
     yield "[DONE]\n\n"
-    
-    
-    
+
 # this function check if any prompt is present in the response chunk
 def is_sensitive_content(chunk: str, prompts_first_lines: List[str]) -> bool:
     chunk_lines = chunk.split("\n")
@@ -51,6 +54,4 @@ def is_sensitive_content(chunk: str, prompts_first_lines: List[str]) -> bool:
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio() > 0.8
 
-
-__exports__ = chat_response_streamer, is_sensitive_content
-
+exports = chat_response_streamer, is_sensitive_content
