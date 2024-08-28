@@ -1,14 +1,14 @@
 from typing import List, Generator
 from phi.assistant import Assistant
 from difflib import SequenceMatcher
-import threading
+# import threading
 
 def chat_response_streamer(
     assistant: Assistant,
     message: str,
     is_new_session: bool,
     prompts_first_lines: List[str],
-    cancel_flag: threading.Event
+    # cancel_flag: threading.Event
 ) -> Generator:
     if is_new_session:
         yield f"run_id: {assistant.run_id}\n"
@@ -16,9 +16,9 @@ def chat_response_streamer(
     accumulated_chunk = ""
     buffer = ""
     for chunk in assistant.run(message):
-        if cancel_flag.is_set():
-            yield "[CANCELLED]\n\n"
-            return
+        # if cancel_flag.is_set():
+        #     yield "[CANCELLED]\n\n"
+        #     return
         accumulated_chunk += chunk
         buffer += chunk
         if is_sensitive_content(accumulated_chunk, prompts_first_lines):

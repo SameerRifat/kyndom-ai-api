@@ -25,7 +25,7 @@ from utils import chat_response_streamer, is_sensitive_content
 from combined_knowledge_base import knowledge_base
 from phi.llm.aws.claude import Claude
 from phi.llm.openai import OpenAIChat
-import threading
+# import threading
 
 # import prompt
 from system_prompt import prompt
@@ -286,7 +286,7 @@ def get_assistant_for_chat_summary(
     }
     return Assistant(**assistant_params)
 
-cancel_flag = threading.Event()
+# cancel_flag = threading.Event()
 
 class ChatRequest(BaseModel):
     message: str
@@ -306,7 +306,7 @@ class ChatRequest(BaseModel):
 async def chat(body: ChatRequest):
     """Sends a message to an Assistant and returns the response"""
 
-    cancel_flag.clear()
+    # cancel_flag.clear()
 
     logger.debug(f"ChatRequest: {body}")
     run_id: Optional[str] = body.run_id if body.run_id else None
@@ -357,7 +357,7 @@ async def chat(body: ChatRequest):
     if body.stream:
         return StreamingResponse(
             chat_response_streamer(
-                assistant, body.message, is_new_session, prompts_first_lines, cancel_flag=cancel_flag
+                assistant, body.message, is_new_session, prompts_first_lines
             ),
             media_type="text/event-stream",
         )
@@ -370,10 +370,10 @@ async def chat(body: ChatRequest):
         else:
             return JSONResponse({"response": response})
         
-@router.post("/cancel_stream")
-async def cancel_stream():
-    cancel_flag.set()
-    return {"status": "Stream cancelled"}
+# @router.post("/cancel_stream")
+# async def cancel_stream():
+#     cancel_flag.set()
+#     return {"status": "Stream cancelled"}
 
 
 class ChatSummaryRequest(BaseModel):

@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 aienv/
 aienv
+kyndom_venv
+kyndom_venv/
 
 # C extensions
 *.so
