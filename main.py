@@ -20,9 +20,9 @@ import json
 from typing import List, Dict, Any
 from utils import chat_response_streamer, is_sensitive_content
 
-# from intro_knowledge_base import intro_knowledge_base
+from intro_knowledge_base import intro_knowledge_base
 # from kyndom_knowledge_base import kyndom_knowledge_base
-from combined_knowledge_base import knowledge_base
+# from combined_knowledge_base import knowledge_base
 from phi.llm.aws.claude import Claude
 from phi.llm.openai import OpenAIChat
 # import threading
@@ -37,6 +37,8 @@ from system_prompt import (
     summary_prompt
 )
 from content_prompt import reel_script_prompt, story_script_prompt, general_instruction
+
+from mongodb_search import mongodb_search
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +149,7 @@ def create_assistant_params(
         #     model="claude-3-sonnet-20240229",
         #     api_key=
         # ),
-        "llm": OpenAIChat(model="gpt-4o", max_tokens=400, temperature=0.3),
+        "llm": OpenAIChat(model="gpt-4o", max_tokens=1024, temperature=0.3),
         "description": prompt,
         # "instructions": instructions.copy(),  # Create a copy to modify
         "instructions": (
@@ -156,7 +158,8 @@ def create_assistant_params(
         "run_id": run_id,
         "user_id": user_id,
         "storage": storage,
-        "tools": [DuckDuckGo()],
+        # "tools": [mongodb_search],
+        "tools": [DuckDuckGo(), mongodb_search],
         "search_knowledge": True,
         "read_chat_history": True,
         "create_memories": True,
@@ -168,7 +171,7 @@ def create_assistant_params(
             )
         ),
         "update_memory_after_run": True,
-        "knowledge_base": knowledge_base,
+        "knowledge_base": intro_knowledge_base,
         "add_references_to_prompt": True,
         "add_chat_history_to_messages": True,
         "introduction": dedent(
@@ -179,7 +182,7 @@ def create_assistant_params(
             """
         ),
         "prevent_hallucinations": True,
-        "debug_mode": False,
+        "debug_mode": True,
     }
 
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
@@ -260,7 +263,7 @@ def get_assistant_for_chat_summary(
         #     model="anthropic.claude-3-sonnet-20240229-v1:0",
         #     api_key=
         # ),
-        "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=400, temperature=0.3),
+        "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=2048, temperature=0.3),
         "description": prompt,
         "instructions": instructions,
         "run_id": run_id,
