@@ -9,3 +9,5 @@ phidata[aws]
 openai
 duckduckgo-search
 anthropic
+pymongo
+python-dotenv
