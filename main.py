@@ -149,7 +149,7 @@ def create_assistant_params(
         #     model="claude-3-sonnet-20240229",
         #     api_key=
         # ),
-        "llm": OpenAIChat(model="gpt-4o", max_tokens=1024, temperature=0.3),
+        "llm": OpenAIChat(model="gpt-4o", max_tokens=4096, temperature=0.3),
         "description": prompt,
         # "instructions": instructions.copy(),  # Create a copy to modify
         "instructions": (
@@ -182,7 +182,7 @@ def create_assistant_params(
             """
         ),
         "prevent_hallucinations": True,
-        "debug_mode": True,
+        "debug_mode": False,
     }
 
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
