@@ -182,7 +182,7 @@ def create_assistant_params(
             """
         ),
         "prevent_hallucinations": True,
-        "debug_mode": False,
+        "debug_mode": True,
     }
 
     # Add speech_to_speech_prompt to instructions if speech_to_speech is True
