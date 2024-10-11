@@ -2,7 +2,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
-from typing import Optional, List, Generator, Dict, Any
+from typing import Optional, List, Generator, Dict, Any, Union
 from phi.assistant import Assistant, AssistantMemory, AssistantKnowledge, AssistantRun
 from phi.storage.assistant.postgres import PgAssistantStorage
 from phi.knowledge.pdf import PDFUrlKnowledgeBase
@@ -19,6 +19,8 @@ from sqlalchemy.orm import sessionmaker
 import json
 from typing import List, Dict, Any
 from utils import chat_response_streamer, is_sensitive_content
+import csv
+from datetime import datetime
 
 from intro_knowledge_base import intro_knowledge_base
 # from kyndom_knowledge_base import kyndom_knowledge_base
@@ -447,7 +449,6 @@ class RunInfo(BaseModel):
 class GetAllAssistantRunIdsRequest(BaseModel):
     user_id: str
 
-
 @app.post("/get-all-ids", response_model=List[RunInfo])
 def get_run_ids(body: GetAllAssistantRunIdsRequest):
     """Return all run_ids with template info for a user"""
@@ -457,7 +458,108 @@ def get_run_ids(body: GetAllAssistantRunIdsRequest):
     except Exception as e:
         logger.exception("An error occurred in get_run_ids")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
+CSV_PATH = "./data/City_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
 
+class ZHVIResponse(BaseModel):
+    dates: List[str]
+    regionData: List[Dict[str, Union[str, int, float, None]]]
+
+# Initialize ZHVI data
+headers = None
+formatted_dates = None
+
+def load_and_parse_csv():
+    global headers, formatted_dates
+    try:
+        with open(CSV_PATH, 'r') as file:
+            csv_reader = csv.reader(file)
+            headers = next(csv_reader)
+            
+            if not headers:
+                raise ValueError("CSV file is empty or contains only whitespace")
+            
+            date_columns = headers[8:]
+            formatted_dates = []
+            for date in date_columns:
+                try:
+                    # First try parsing as 'DD/MM/YYYY'
+                    parsed_date = datetime.strptime(date, '%d/%m/%Y')
+                except ValueError:
+                    try:
+                        # If it fails, try parsing as 'YYYY-MM-DD'
+                        parsed_date = datetime.strptime(date, '%Y-%m-%d')
+                    except ValueError as e:
+                        logger.error(f"Error parsing date {date}: {e}")
+                        formatted_dates.append(date)
+                        continue  # Skip to the next date if parsing fails
+
+                # If parsing is successful, format the date as 'YYYY-MM-DD'
+                formatted_date = parsed_date.strftime('%Y-%m-%d')
+                formatted_dates.append(formatted_date)
+            
+            return True
+    except Exception as e:
+        logger.error(f"Error loading CSV file: {e}")
+        return False
+
+# Load CSV data on startup
+if not load_and_parse_csv():
+    logger.error("Failed to load ZHVI data on startup")
+
+@app.get("/api/zhvi/{region_name}/{state_name}", response_model=ZHVIResponse)
+async def get_zhvi_data(region_name: str, state_name: str):
+    if not headers or not formatted_dates:
+        raise HTTPException(status_code=500, detail="ZHVI data not properly initialized")
+    
+    try:
+        matching_record = None
+        
+        with open(CSV_PATH, 'r') as file:
+            csv_reader = csv.reader(file)
+            next(csv_reader)  # Skip headers
+            
+            for row in csv_reader:
+                if len(row) < 8:
+                    continue
+                
+                if (row[2].lower() == region_name.lower() and 
+                    row[4].lower() == state_name.lower()):
+                    record = {
+                        "RegionID": int(row[0]) if row[0].isdigit() else 0,
+                        "SizeRank": int(row[1]) if row[1].isdigit() else 0,
+                        "RegionName": row[2],
+                        "RegionType": row[3],
+                        "StateName": row[4],
+                        "State": row[5],
+                        "Metro": row[6],
+                        "CountyName": row[7]
+                    }
+                    
+                    for i, date in enumerate(formatted_dates):
+                        try:
+                            value = float(row[i + 8]) if row[i + 8] else None
+                            record[date] = value
+                        except (IndexError, ValueError):
+                            record[date] = None
+                    
+                    matching_record = record
+                    break
+        
+        if not matching_record:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No data found for {region_name}, {state_name}"
+            )
+        
+        return JSONResponse({
+            "dates": formatted_dates,
+            "regionData": [matching_record]
+        })
+    
+    except Exception as e:
+        logger.exception("An error occurred in get_zhvi_data")
+        raise HTTPException(status_code=500, detail=str(e))
 
 app.include_router(router)
 
