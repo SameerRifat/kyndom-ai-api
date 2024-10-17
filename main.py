@@ -1,33 +1,22 @@
 # OpneAI LLM:
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
-from pydantic import BaseModel
-from typing import Optional, List, Generator, Dict, Any, Union
-from phi.assistant import Assistant, AssistantMemory, AssistantKnowledge, AssistantRun
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Union
+from phi.assistant import Assistant, AssistantMemory
 from phi.storage.assistant.postgres import PgAssistantStorage
-from phi.knowledge.pdf import PDFUrlKnowledgeBase
-from phi.vectordb.pgvector import PgVector2
 from phi.memory.db.postgres import PgMemoryDb
-from phi.embedder.openai import OpenAIEmbedder
 from textwrap import dedent
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from phi.tools.duckduckgo import DuckDuckGo
-from sqlalchemy import text
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
-import json
-from typing import List, Dict, Any
+from typing import List, Dict
 from utils import chat_response_streamer, is_sensitive_content
 import csv
 from datetime import datetime
 
 from intro_knowledge_base import intro_knowledge_base
-# from kyndom_knowledge_base import kyndom_knowledge_base
-# from combined_knowledge_base import knowledge_base
-from phi.llm.aws.claude import Claude
 from phi.llm.openai import OpenAIChat
-# import threading
 
 # import prompt
 from system_prompt import prompt
@@ -44,75 +33,10 @@ from mongodb_search import mongodb_search
 
 logger = logging.getLogger(__name__)
 
-
-class CustomPgAssistantStorage(PgAssistantStorage):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.engine = create_engine(self.db_url)
-        self.Session = sessionmaker(bind=self.engine)
-
-    def get_all_run_info(self, user_id: str) -> List[Dict[str, Any]]:
-        run_ids = self.get_all_run_ids(user_id)
-        run_info_list = []
-
-        query = text(
-            f"""
-        SELECT run_id, assistant_data, run_data, memory
-        FROM {self.schema}.{self.table_name}
-        WHERE run_id = ANY(:run_ids)
-        ORDER BY created_at DESC
-        """
-        )
-
-        with self.Session() as session:
-            result = session.execute(query, {"run_ids": run_ids})
-            rows = result.fetchall()
-
-            for row in rows:
-                run_id, assistant_data, run_data, memory = row
-
-                # Handle cases where data might be string or dict
-                if isinstance(assistant_data, str):
-                    assistant_data = json.loads(assistant_data)
-                elif assistant_data is None:
-                    assistant_data = {}
-
-                if isinstance(run_data, str):
-                    run_data = json.loads(run_data)
-                elif run_data is None:
-                    run_data = {}
-
-                if isinstance(memory, str):
-                    memory = json.loads(memory)
-                elif memory is None:
-                    memory = {}
-
-                chat_history = memory.get("chat_history", [])
-
-                # Get the last response from chat_history where role is 'assistant'
-                last_response = None
-                for entry in reversed(chat_history):
-                    if entry["role"] == "assistant":
-                        last_response = entry["content"]
-                        break
-
-                run_info = {
-                    "run_id": run_id,
-                    "template_id": assistant_data.get("template_id")
-                    or run_data.get("template_id"),
-                    "template_title": assistant_data.get("template_title")
-                    or run_data.get("template_title"),
-                    "template_data": assistant_data,
-                    "last_response": last_response,  # Add last_response to the run_info
-                }
-                run_info_list.append(run_info)
-
-        return run_info_list
-
-
 # Initialize the custom storage
 db_url = "postgresql+psycopg://postgres.qsswdusttgzhprqgmaez:Burewala_789@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
-storage = CustomPgAssistantStorage(table_name="my_assistant", db_url=db_url)
+# storage = CustomPgAssistantStorage(table_name="my_assistant", db_url=db_url)
+storage = PgAssistantStorage(table_name="my_assistant", db_url=db_url)
 
 
 app = FastAPI()
@@ -261,10 +185,6 @@ def get_assistant_for_chat_summary(
     run_id: Optional[str], user_id: Optional[str]
 ) -> Assistant:
     assistant_params = {
-        # "llm": Claude(
-        #     model="anthropic.claude-3-sonnet-20240229-v1:0",
-        #     api_key=
-        # ),
         "llm": OpenAIChat(model="gpt-4o-mini", max_tokens=2048, temperature=0.3),
         "description": prompt,
         "instructions": instructions,
@@ -374,90 +294,71 @@ async def chat(body: ChatRequest):
             return JSONResponse({"run_id": assistant.run_id, "response": response})
         else:
             return JSONResponse({"response": response})
-        
-# @router.post("/cancel_stream")
-# async def cancel_stream():
-#     cancel_flag.set()
-#     return {"status": "Stream cancelled"}
-
 
 class ChatSummaryRequest(BaseModel):
     stream: bool = False
     run_id: Optional[str] = None
     user_id: Optional[str] = "user"
     assistant: str = "RAG_PDF"
-
+    recent_message: str = Field(..., description="The most recent user message")
 
 @router.post("/chat-summary")
 async def chat(body: ChatSummaryRequest):
-    """Sends a message to an Assistant and returns the response"""
+    """Generates a summary title for the most recent chat message"""
 
-    logger.debug(f"ChatRequest: {body}")
+    logger.debug(f"ChatSummaryRequest: {body}")
 
     assistant: Assistant = get_assistant_for_chat_summary(
         run_id=body.run_id,
         user_id=body.user_id,
     )
 
-    summary = assistant.run(f"{summary_prompt}", stream=False)
+    summary_prompt_with_context = f"""
+    Previous message: {body.recent_message}
+
+    1. Generate a concise 4-6 word summary title that clearly captures the main topic or objective of the previous chat message.
+    2. Ensure that the summary is specific to the actual content discussed in the previous message.
+    3. Avoid generic phrases or topics, such as 'general chat purpose,' 'assistant capabilities,' or 'lead generation strategies.'
+    4. Exclude any tool names, irrelevant details, or broad generalizations.
+    5. Focus solely on the key subject matter of the conversation.
+    6. If the previous message is very brief or lacks specific content, make sure the summary is still relevant to the overall chat context.
+    7. For specific messages, create a summary that accurately represents the main point of the conversation.
+    8. For non-specific messages, aim to generate a summary that still captures the essence of the message while avoiding overly broad or generic terms.
+
+    Based on the above context and guidelines, generate a summary title:
+    """
+
+    summary = assistant.run(summary_prompt_with_context, stream=False)
 
     return JSONResponse({"response": summary.strip('"')})
 
 
-class ChatHistoryRequest(BaseModel):
-    run_id: str
-    user_id: Optional[str] = None
+# class ChatSummaryRequest(BaseModel):
+#     stream: bool = False
+#     run_id: Optional[str] = None
+#     user_id: Optional[str] = "user"
+#     assistant: str = "RAG_PDF"
 
 
-@router.post("/history", response_model=List[Dict[str, Any]])
-async def get_chat_history(body: ChatHistoryRequest):
-    """Return the chat history for an Assistant run"""
+# @router.post("/chat-summary")
+# async def chat(body: ChatSummaryRequest):
+#     """Sends a message to an Assistant and returns the response"""
 
-    logger.debug(f"ChatHistoryRequest: {body}")
-    assistant: Assistant = get_assistant(
-        run_id=body.run_id, user_id=body.user_id, template_category=None
-    )
-    # Load the assistant from the database
-    assistant.read_from_storage()
+#     logger.debug(f"ChatRequest: {body}")
 
-    chat_history = assistant.memory.get_chat_history()
-    return chat_history
+#     assistant: Assistant = get_assistant_for_chat_summary(
+#         run_id=body.run_id,
+#         user_id=body.user_id,
+#     )
+
+#     summary = assistant.run(f"{summary_prompt}", stream=False)
+
+#     return JSONResponse({"response": summary.strip('"')})
 
 
 @router.get("/")
 async def health_check():
     return "The health check is successful!"
-
-
-class GetAllAssistantRunsRequest(BaseModel):
-    user_id: str
-
-
-@app.post("/get-all", response_model=List[AssistantRun])
-def get_assistants(body: GetAllAssistantRunsRequest):
-    """Return all Assistant runs for a user"""
-    return storage.get_all_runs(user_id=body.user_id)
-
-
-class RunInfo(BaseModel):
-    run_id: str
-    template_id: Optional[str] = None
-    template_title: Optional[str] = None
-    last_response: Optional[str] = None
-
-
-class GetAllAssistantRunIdsRequest(BaseModel):
-    user_id: str
-
-@app.post("/get-all-ids", response_model=List[RunInfo])
-def get_run_ids(body: GetAllAssistantRunIdsRequest):
-    """Return all run_ids with template info for a user"""
-    try:
-        run_info_list = storage.get_all_run_info(user_id=body.user_id)
-        return [RunInfo(**run_info) for run_info in run_info_list]
-    except Exception as e:
-        logger.exception("An error occurred in get_run_ids")
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
     
 CSV_PATH = "./data/City_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
 
