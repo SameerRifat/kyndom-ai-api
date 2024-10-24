@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+phidata
+phidata[aws]
+openai
+duckduckgo-search
+pymongo
+pgvector
+sqlalchemy
+pgvector
+psycopg
