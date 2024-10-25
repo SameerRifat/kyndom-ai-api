@@ -79,13 +79,14 @@ async def chat(body: ChatRequest):
             media_type="text/event-stream",
         )
     else:
-        response = agent.run(body.message, stream=False)
-        if is_sensitive_content(response, prompts_first_lines):
-            response = "Sorry, I'm not able to respond to that request."
+        response: RunResponse = agent.run(body.message, stream=False)
+        response_content = response.content
+        if is_sensitive_content(response_content, prompts_first_lines):
+            response_content = "Sorry, I'm not able to respond to that request."
         # Only include session_id in response if it's a new session
         return JSONResponse(
-            {"session_id": agent.session_id, "response": response} if body.new
-            else {"response": response}
+            {"session_id": agent.session_id, "response": response_content} if body.new
+            else {"response": response_content}
         )
 
 @router.post("/chat-summary")
