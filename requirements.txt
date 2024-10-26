@@ -9,3 +9,4 @@ pgvector
 sqlalchemy
 pgvector
 psycopg
+python-jose[cryptography]
