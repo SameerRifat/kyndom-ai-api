@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.responses import StreamingResponse, JSONResponse
 from app.models.schemas import ChatRequest, ChatSummaryRequest
 from phi.agent import Agent, RunResponse
@@ -20,6 +20,8 @@ import logging
 from typing import Optional, List
 from app.core.prompts.base import get_summary_prompt_with_context
 from app.core.security import auth_middleware
+
+from app.services.token_usage_tracker import TokenUsageTracker
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -74,22 +76,63 @@ async def chat(request: Request, body: ChatRequest):
     if extra_prompt:
         prompts_first_lines.append(extra_prompt)
 
+    token_tracker = TokenUsageTracker()
+
     if body.stream:
+        # For streaming responses, update tokens after stream ends
+        response_generator = chat_response_streamer(
+            agent, body.message, body.new, prompts_first_lines
+        )
+        # Create background tasks correctly
+        background_tasks = BackgroundTasks()
+
+        async def update_tokens_after_stream():
+            logger.debug(f"Metrics before update: {agent.run_response.metrics}")
+            # Ensure metrics are available after stream completes
+            if agent.run_response and agent.run_response.metrics:
+                await token_tracker.update_user_token_usage(
+                    user_id=body.user_id,
+                    metrics=agent.run_response.metrics,
+                )
+            else:
+                logger.error("Metrics not available after streaming completed")
+        
+        background_tasks.add_task(update_tokens_after_stream)
+        
         return StreamingResponse(
-            chat_response_streamer(
-                agent, body.message, body.new, prompts_first_lines
-            ),
+            response_generator,
             media_type="text/event-stream",
+            background=background_tasks
         )
     else:
         response: RunResponse = agent.run(body.message, stream=False)
         response_content = response.content
         if is_sensitive_content(response_content, prompts_first_lines):
             response_content = "Sorry, I'm not able to respond to that request."
-        # Only include session_id in response if it's a new session
-        return JSONResponse(
-            {"session_id": agent.session_id, "response": response_content} if body.new
+
+            # Add token tracking as a background task
+        async def update_tokens_after_response():
+            if response and response.metrics:
+                await token_tracker.update_user_token_usage(
+                    user_id=body.user_id,
+                    metrics=response.metrics,
+                )
+            else:
+                logger.error("Metrics not available for non-streaming response")
+
+        background_tasks.add_task(update_tokens_after_response)
+
+        # Prepare the response data
+        response_data = (
+            {"session_id": agent.session_id, "response": response_content}
+            if body.new
             else {"response": response_content}
+        )
+        
+        # Return JSONResponse with background tasks
+        return JSONResponse(
+            content=response_data,
+            background=background_tasks
         )
 
 @router.post("/chat-summary")
