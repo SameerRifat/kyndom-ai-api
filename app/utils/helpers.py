@@ -1,6 +1,7 @@
 from typing import Generator, List, Iterator
 from phi.agent import Agent, RunResponse
 from difflib import SequenceMatcher
+from rich.pretty import pprint
 
 def chat_response_streamer(
     agent: Agent,
@@ -15,8 +16,12 @@ def chat_response_streamer(
     
     # Get streaming response
     response_stream: Iterator[RunResponse] = agent.run(message, stream=True)
+    final_metrics = None
     
     for response in response_stream:
+        # Store the latest metrics
+        if hasattr(response, 'metrics') and response.metrics:
+            final_metrics = response.metrics
         # Get the content from RunResponse
         chunk = response.content
         if not chunk:
@@ -48,6 +53,30 @@ def chat_response_streamer(
     if buffer:  # Yield any remaining content
         yield buffer
     yield "[DONE]\n\n"
+    print(f"Final metrics: {agent.run_response.metrics}")
+
+    # Set the final metrics on the agent's run_response
+    if final_metrics:
+        agent.run_response.metrics = final_metrics
+
+    # Debug logging
+    print("---" * 5, "Final Metrics", "---" * 5)
+    pprint(agent.run_response.metrics)
+
+    # if agent.run_response.messages:
+    #     for message in agent.run_response.messages:
+    #         if message.role == "assistant":
+    #             if message.content:
+    #                 print(f"Message: {message.content}")
+    #             elif message.tool_calls:
+    #                 print(f"Tool calls: {message.tool_calls}")
+    #             print("---" * 5, "Metrics", "---" * 5)
+    #             pprint(message.metrics)
+    #             print("---" * 20)
+
+    # # Print the metrics
+    # print("---" * 5, "Aggregated Metrics", "---" * 5)
+    # pprint(agent.run_response.metrics)
 
 def is_sensitive_content(content: str, prompts_first_lines: List[str]) -> bool:
     """
