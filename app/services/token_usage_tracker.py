@@ -1,17 +1,18 @@
-from pymongo import MongoClient, UpdateOne
+# app/services/token_usage_tracker.py
+from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Union, Tuple, List
+from typing import Dict, Optional, Union, List
+from bson.objectid import ObjectId
 import logging
 import os
 from dotenv import load_dotenv
-from bson.objectid import ObjectId
 
-# Load environment variables
 load_dotenv()
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 class TokenUsageTracker:
@@ -19,231 +20,342 @@ class TokenUsageTracker:
         self.mongo_uri = os.getenv("MONGODB_URI")
         self.database_name = "kyndom"
         self.client = None
+        logger.debug(f"TokenUsageTracker initialized with database: {self.database_name}")
 
     async def connect(self):
-        """Establish MongoDB connection"""
         try:
+            logger.debug(f"Attempting to connect to MongoDB at {self.mongo_uri[:20]}...")
             self.client = MongoClient(self.mongo_uri)
             self.db = self.client[self.database_name]
-            # Test connection
             self.client.admin.command('ismaster')
             logger.info("Successfully connected to MongoDB")
         except ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {str(e)}")
             raise
 
-    async def close(self):
-        """Close MongoDB connection"""
-        if self.client:
-            self.client.close()
-            logger.info("MongoDB connection closed")
-
-    def _calculate_period_dates(self, subscription: Dict) -> Tuple[datetime, datetime]:
-        """Calculate current billing period start and end dates"""
-        now = datetime.now()
-        
-        if subscription['tariff'] == 'MONTHLY_PLAN':
-            # For monthly plans, period starts on subscription start date and extends for a month
-            period_start = subscription.get('createdAt')
-            while period_start + timedelta(days=30) < now:
-                period_start += timedelta(days=30)
-            period_end = period_start + timedelta(days=30)
-        else:  # YEARLY_PLAN
-            # For yearly plans, period starts on subscription start date and extends for a year
-            period_start = subscription.get('createdAt')
-            while period_start + timedelta(days=365) < now:
-                period_start += timedelta(days=365)
-            period_end = period_start + timedelta(days=365)
-            
-        return period_start, period_end
-    
-    def _calculate_tokens_from_metrics(self, metrics: Dict) -> Dict[str, int]:
-        """Calculate token totals from metrics response"""
+    async def get_active_subscription(self, user_id: str) -> Optional[Dict]:
+        """Get active subscription for a user directly from Subscription collection"""
         try:
-            if metrics is None:
-                logger.error("Metrics dictionary is None")
-                return {
-                    'input_tokens': 0,
-                    'output_tokens': 0,
-                    'total_tokens': 0
-                }
-
-            # Convert defaultdict values to regular values if needed
-            input_tokens = metrics.get('input_tokens', [])
-            output_tokens = metrics.get('output_tokens', [])
-            total_tokens = metrics.get('total_tokens', [])
-
-            # Handle both single metrics and aggregated metrics formats
-            if isinstance(input_tokens, list):
-                return {
-                    'input_tokens': sum(input_tokens) if input_tokens else 0,
-                    'output_tokens': sum(output_tokens) if output_tokens else 0,
-                    'total_tokens': sum(total_tokens) if total_tokens else 0
-                }
-            else:
-                return {
-                    'input_tokens': input_tokens or 0,
-                    'output_tokens': output_tokens or 0,
-                    'total_tokens': total_tokens or 0
-                }
-        except Exception as e:
-            logger.error(f"Error calculating tokens from metrics: {str(e)}")
-            logger.error(f"Metrics content: {metrics}")
-            raise ValueError("Invalid metrics format")
-
-    async def get_or_create_billing_period(
-        self,
-        user_id: str,
-        subscription: Dict
-    ) -> Optional[Dict]:
-        """Get current billing period or create if it doesn't exist"""
-        period_start, period_end = self._calculate_period_dates(subscription)
-        
-        current_period = self.db.BillingPeriodTokenUsage.find_one({
-            'userId': ObjectId(user_id),
-            'subscriptionId': subscription['_id'],
-            'periodStart': {'$lte': datetime.now()},
-            'periodEnd': {'$gt': datetime.now()}
-        })
-        
-        if not current_period:
-            # Create new billing period
-            current_period = {
+            logger.debug(f"Getting active subscription for user_id: {user_id}")
+            now = datetime.now()
+            
+            # Find active subscription
+            subscription = self.db.Subscription.find_one({
                 'userId': ObjectId(user_id),
-                'subscriptionId': subscription['_id'],
-                'periodStart': period_start,
-                'periodEnd': period_end,
-                'inputTokens': 0,
-                'outputTokens': 0,
-                'totalTokens': 0,
-                'planType': subscription['tariff'],
+                'status': 'ACTIVE',
+                'startDate': {'$lte': now},
+                'endDate': {'$gt': now}
+            })
+            
+            if not subscription:
+                logger.warning(f"No active subscription found for user_id: {user_id}")
+                return None
+                
+            logger.debug(f"Found active subscription: {subscription}")
+            return subscription
+            
+        except Exception as e:
+            logger.error(f"Error getting active subscription: {str(e)}", exc_info=True)
+            return None
+
+    async def _create_new_usage_period(self, subscription_id: ObjectId) -> Dict:
+        """Create a new usage period for a subscription and process any pending usage"""
+        logger.debug(f"Creating new usage period for subscription_id: {subscription_id}")
+        
+        try:
+            subscription = self.db.Subscription.find_one({'_id': subscription_id})
+            logger.debug(f"Found subscription data: {subscription}")
+            
+            if not subscription:
+                error_msg = f"Subscription not found for ID: {subscription_id}"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+            now = datetime.now()
+            logger.debug(f"Monthly token quota from subscription: {subscription['monthlyBudget']}")
+
+            new_period = {
+                'subscriptionId': subscription_id,
+                'periodStart': subscription['startDate'],
+                'periodEnd': subscription['endDate'],
+                'quotaForPeriod': subscription.get('monthlyBudget', 0),
+                'totalTokensUsed': 0,
+                'totalCharactersUsed': 0,
+                'totalSecondsUsed': 0,
+                'createdAt': now,
+                'updatedAt': now
+            }
+            
+            logger.debug(f"Attempting to insert new usage period: {new_period}")
+            result = self.db.UsagePeriod.insert_one(new_period)
+            new_period['_id'] = result.inserted_id
+            logger.info(f"Created new usage period with ID: {result.inserted_id}")
+
+           # Process any pending usage for this user
+            pending_result = await self.process_pending_usage(
+                str(subscription['userId']), 
+                result.inserted_id
+            )
+            logger.info(f"Pending usage processing result: {pending_result}")
+            
+            return new_period
+
+        except Exception as e:
+            logger.error(f"Error creating new usage period: {str(e)}", exc_info=True)
+            raise
+
+    async def get_active_usage_period(self, user_id: str) -> Optional[Dict]:
+        """Get the current usage period for a user"""
+        try:
+            logger.debug(f"Getting active usage period for user_id: {user_id}")
+
+            # Get user's active subscription directly from Subscription collection
+            active_subscription = await self.get_active_subscription(user_id)
+            
+            if not active_subscription:
+                logger.warning(f"No active subscription found for user_id: {user_id}")
+                return None
+
+            # Find current usage period
+            logger.debug(f"Looking for usage period for subscription: {active_subscription['_id']}")
+            current_period = self.db.UsagePeriod.find_one({
+                'subscriptionId': active_subscription['_id'],
+                'periodStart': {'$lte': datetime.now()},
+                'periodEnd': {'$gt': datetime.now()}
+            })
+            logger.debug(f"Found usage period: {current_period}")
+
+            if not current_period:
+                logger.info("No active usage period found, creating new one...")
+                current_period = await self._create_new_usage_period(
+                    active_subscription['_id']
+                )
+                logger.debug(f"Created new usage period: {current_period}")
+
+            return current_period
+        except Exception as e:
+            logger.error(f"Error getting active usage period: {str(e)}", exc_info=True)
+            return None
+
+    def _process_metrics(self, metrics: Dict) -> Dict[str, int]:
+        """Process and validate metrics data"""
+        logger.debug(f"Processing metrics: {metrics}")
+        try:
+            # Initialize result dict
+            result = {
+                'input_tokens': 0,
+                'output_tokens': 0,
+                'cached_tokens': 0
+            }
+            
+            # Handle list-type metrics (aggregating multiple calls)
+            if isinstance(metrics.get('input_tokens'), list):
+                result['input_tokens'] = sum(metrics.get('input_tokens', []))
+                result['output_tokens'] = sum(metrics.get('output_tokens', []))
+                
+                # Process cached tokens from prompt_tokens_details
+                prompt_details = metrics.get('prompt_tokens_details', [])
+                result['cached_tokens'] = sum(
+                    detail.get('cached_tokens', 0) 
+                    for detail in prompt_details
+                    if isinstance(detail, dict)
+                )
+                
+            # Handle scalar metrics (single call)
+            else:
+                result['input_tokens'] = metrics.get('input_tokens', 0)
+                result['output_tokens'] = metrics.get('output_tokens', 0)
+                
+                # Get cached tokens from prompt_tokens_details if available
+                prompt_details = metrics.get('prompt_tokens_details', [])
+                if prompt_details and isinstance(prompt_details[0], dict):
+                    result['cached_tokens'] = prompt_details[0].get('cached_tokens', 0)
+            
+            logger.debug(f"Processed metrics: {result}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing metrics: {str(e)}", exc_info=True)
+            return {
+                'input_tokens': 0, 
+                'output_tokens': 0,
+                'cached_tokens': 0
+            }
+        
+    async def store_pending_usage(self, user_id: str, metrics: Dict, message_type: str) -> Dict:
+        """Store token usage for users without an active subscription"""
+        try:
+            token_counts = self._process_metrics(metrics)
+            total_tokens = token_counts['input_tokens'] + token_counts['output_tokens']
+
+            pending_usage = {
+                'userId': ObjectId(user_id),
+                'messageType': message_type,
+                'inputTokens': token_counts['input_tokens'],
+                'outputTokens': token_counts['output_tokens'],
+                'cachedTokens': token_counts['cached_tokens'],  
+                'processed': False,
                 'createdAt': datetime.now()
             }
-            result = self.db.BillingPeriodTokenUsage.insert_one(current_period)
-            current_period['_id'] = result.inserted_id
-            
-        return current_period
 
+            result = self.db.PendingTokenUsage.insert_one(pending_usage)
+            
+            logger.info(f"Stored pending usage for user {user_id}: {total_tokens} tokens (cached: {token_counts['cached_tokens']})")
+            return {
+                "success": True,
+                "pending_usage_id": str(result.inserted_id),
+                "tokens_stored": total_tokens,
+                "cached_tokens": token_counts['cached_tokens']
+            }
+        except Exception as e:
+            logger.error(f"Error storing pending usage: {str(e)}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    async def process_pending_usage(self, user_id: str, usage_period_id: ObjectId) -> Dict:
+        """Process any pending token usage when a subscription becomes active"""
+        try:
+            logger.debug(f"Finding unprocessed pending usage records for user_id: {user_id}")
+            pending_records = self.db.PendingTokenUsage.find({
+                'userId': ObjectId(user_id),
+                'processed': False
+            })
+
+            total_processed = 0
+            total_tokens = 0
+
+            for record in pending_records:
+                try:
+                    # Create message record
+                    message = {
+                        'userId': record['userId'],
+                        'usagePeriodId': usage_period_id,
+                        'messageType': record['messageType'],
+                        'inputTokens': record['inputTokens'],
+                        'outputTokens': record['outputTokens'],
+                        'cachedTokens': record['cachedTokens'],
+                        'createdAt': record['createdAt']
+                    }
+                    
+                    logger.debug(f"Inserting message record: {message}")
+                    self.db.Message.insert_one(message)
+                    
+                    total_processed += 1
+                    # Include all tokens in the total (including cached tokens)
+                    total_tokens += (record['inputTokens'] + record['outputTokens'])
+
+                    logger.debug(f"Marking pending record {record['_id']} as processed")
+                    self.db.PendingTokenUsage.update_one(
+                        {'_id': record['_id']},
+                        {'$set': {'processed': True}}
+                    )
+
+                except Exception as e:
+                    logger.error(f"Error processing pending record {record['_id']}: {str(e)}")
+                    continue
+
+            logger.debug(f"Updating UsagePeriod {usage_period_id} with {total_tokens} total tokens")
+            self.db.UsagePeriod.update_one(
+                {'_id': usage_period_id},
+                {
+                    '$inc': {'totalTokensUsed': total_tokens},
+                    '$set': {'updatedAt': datetime.now()}
+                }
+            )
+
+            return {
+                "success": True,
+                "processed_count": total_processed,
+                "total_tokens_processed": total_tokens
+            }
+
+        except Exception as e:
+            logger.error(f"Error processing pending usage: {str(e)}", exc_info=True)
+            return {"success": False, "error": str(e)}
+        
     async def update_user_token_usage(
         self,
         user_id: str,
         metrics: Dict,
-        session_id: Optional[str] = None
+        message_type: str = 'TEXT_CHAT'
     ) -> Dict[str, Union[bool, str]]:
-        """Update user's token usage for the current billing period"""
+        """Update token usage for a user's message"""
+        logger.debug(f"Starting token usage update for user_id: {user_id}")
+        logger.debug(f"Incoming metrics: {metrics}")
+        logger.debug(f"Message type: {message_type}")
+        
         try:
-            if not metrics:
-                return {"success": False, "error": "No metrics available"}
-            
             await self.connect()
             
+            # Get active usage period
+            logger.debug("Fetching active usage period...")
+            usage_period = await self.get_active_usage_period(user_id)
+
+            # If no active usage period, store as pending usage
+            if not usage_period:
+                logger.info(f"No active usage period found for user {user_id}, storing as pending usage")
+                return await self.store_pending_usage(user_id, metrics, message_type)
+
+            # Process metrics
+            logger.debug("Processing metrics...")
+            token_counts = self._process_metrics(metrics)
+            logger.debug(f"Processed token counts: {token_counts}")
+            total_tokens = token_counts['input_tokens'] + token_counts['output_tokens']
+            logger.info(f"Total tokens to be recorded: {total_tokens}")
+
+            # Create message record
+            message = {
+                'userId': ObjectId(user_id),
+                'usagePeriodId': usage_period['_id'],
+                'messageType': message_type,
+                'inputTokens': token_counts['input_tokens'],
+                'outputTokens': token_counts['output_tokens'],
+                'cachedTokens': token_counts['cached_tokens'],
+                'createdAt': datetime.now()
+            }
+            logger.debug(f"Preparing to insert message record: {message}")
+            
+            # Insert message and update usage period
             try:
-                user_object_id = ObjectId(user_id)
+                message_result = self.db.Message.insert_one(message)
+                logger.debug(f"Message inserted with ID: {message_result.inserted_id}")
             except Exception as e:
-                logger.error(f"Invalid user_id format: {str(e)}")
-                return {"success": False, "error": "Invalid user ID format"}
-
-            # Get user and active subscription
-            user = self.db.User.find_one({'_id': user_object_id})
-            if not user:
-                return {"success": False, "error": "User not found"}
-
-            subscription = await self._get_active_subscription(user_id)
-            if not subscription:
-                return {"success": False, "error": "No active subscription found"}
-
-            # Calculate token usage
-            token_counts = self._calculate_tokens_from_metrics(metrics)
-            
-            # Get or create current billing period
-            current_period = await self.get_or_create_billing_period(user_id, subscription)
+                logger.error(f"Failed to insert message record: {str(e)}", exc_info=True)
+                return {"success": False, "error": "Failed to insert message record"}
             
             try:
-                # Update user's running totals
-                user_update_result = self.db.User.update_one(
-                    {'_id': user_object_id},
+                logger.debug(f"Updating usage period {usage_period['_id']} with {total_tokens} tokens")
+                update_result = self.db.UsagePeriod.update_one(
+                    {'_id': usage_period['_id']},
                     {
-                        '$inc': {
-                            'currentPeriodTokens': token_counts['total_tokens'],
-                            'totalTokensUsed': token_counts['total_tokens']
-                        }
+                        '$inc': {'totalTokensUsed': total_tokens},
+                        '$set': {'updatedAt': datetime.now()}
                     }
                 )
+                logger.debug(f"Update result: matched={update_result.matched_count}, modified={update_result.modified_count}")
+            except Exception as e:
+                logger.error(f"Failed to update usage period: {str(e)}", exc_info=True)
+                return {"success": False, "error": "Failed to update usage period"}
 
-                # Update billing period totals
-                billing_update_result = self.db.BillingPeriodTokenUsage.update_one(
-                    {'_id': current_period['_id']},
-                    {
-                        '$inc': {
-                            'inputTokens': token_counts['input_tokens'],
-                            'outputTokens': token_counts['output_tokens'],
-                            'totalTokens': token_counts['total_tokens']
-                        },
-                        '$set': {
-                            'updatedAt': datetime.now()
-                        }
-                    }
-                )
-
-                if user_update_result.modified_count > 0 and billing_update_result.modified_count > 0:
-                    logger.info(f"Updated token usage for user {user_id} in current billing period")
-                    return {
-                        "success": True,
-                        "message": "Token usage updated successfully",
-                        "tokens_used": token_counts['total_tokens'],
-                        "billing_period_id": str(current_period['_id'])
-                    }
-                else:
-                    logger.error(f"Failed to update token usage for user {user_id}")
-                    return {"success": False, "error": "Failed to update token usage"}
-
-            except OperationFailure as e:
-                logger.error(f"Database operation failed: {str(e)}")
-                return {"success": False, "error": "Database operation failed"}
+            if update_result.modified_count > 0:
+                logger.info(f"Successfully updated token usage. Total tokens: {total_tokens}")
+                return {
+                    "success": True,
+                    "message": "Token usage updated successfully",
+                    "tokens_used": total_tokens,
+                    "usage_period_id": str(usage_period['_id'])
+                }
+            
+            logger.warning("Update operation completed but no documents were modified")
+            return {"success": False, "error": "Failed to update token usage"}
 
         except Exception as e:
-            logger.error(f"Unexpected error in token usage update: {str(e)}")
+            logger.error(f"Error updating token usage: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
         finally:
+            logger.debug("Closing MongoDB connection...")
             await self.close()
 
-    async def _get_active_subscription(self, user_id: str) -> Optional[Dict]:
-        """Fetch user's active subscription"""
-        try:
-            subscription = self.db.Subscription.find_one({
-                'userId': ObjectId(user_id),
-                'status': 'ACTIVE'
-            })
-            return subscription
-        except Exception as e:
-            logger.error(f"Error fetching subscription: {str(e)}")
-            return None
-
-    async def get_billing_period_usage(
-        self,
-        user_id: str,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
-    ) -> List[Dict]:
-        """Retrieve billing period usage history"""
-        try:
-            await self.connect()
-            
-            query = {'userId': ObjectId(user_id)}
-            if start_date:
-                query['periodStart'] = {'$gte': start_date}
-            if end_date:
-                query['periodEnd'] = {'$lte': end_date}
-                
-            usage_history = self.db.BillingPeriodTokenUsage.find(
-                query,
-                sort=[('periodStart', -1)]
-            )
-            
-            return list(usage_history)
-            
-        except Exception as e:
-            logger.error(f"Error retrieving billing period usage: {str(e)}")
-            return []
-        finally:
-            await self.close()
+    async def close(self):
+        if self.client:
+            self.client.close()
+            logger.info("MongoDB connection closed")
