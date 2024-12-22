@@ -79,7 +79,9 @@ class TokenUsageTracker:
                 'periodStart': subscription['startDate'],
                 'periodEnd': subscription['endDate'],
                 'quotaForPeriod': subscription.get('monthlyBudget', 0),
-                'totalTokensUsed': 0,
+                'totalInputTokensUsed': 0,
+                'totalOutputTokensUsed': 0,
+                'totalCachedInputTokensUsed': 0,
                 'totalCharactersUsed': 0,
                 'totalSecondsUsed': 0,
                 'createdAt': now,
@@ -92,11 +94,11 @@ class TokenUsageTracker:
             logger.info(f"Created new usage period with ID: {result.inserted_id}")
 
            # Process any pending usage for this user
-            pending_result = await self.process_pending_usage(
-                str(subscription['userId']), 
-                result.inserted_id
-            )
-            logger.info(f"Pending usage processing result: {pending_result}")
+            # pending_result = await self.process_pending_usage(
+            #     str(subscription['userId']), 
+            #     result.inserted_id
+            # )
+            # logger.info(f"Pending usage processing result: {pending_result}")
             
             return new_period
 
@@ -182,96 +184,6 @@ class TokenUsageTracker:
                 'cached_tokens': 0
             }
         
-    async def store_pending_usage(self, user_id: str, metrics: Dict, message_type: str) -> Dict:
-        """Store token usage for users without an active subscription"""
-        try:
-            token_counts = self._process_metrics(metrics)
-            total_tokens = token_counts['input_tokens'] + token_counts['output_tokens']
-
-            pending_usage = {
-                'userId': ObjectId(user_id),
-                'messageType': message_type,
-                'inputTokens': token_counts['input_tokens'],
-                'outputTokens': token_counts['output_tokens'],
-                'cachedTokens': token_counts['cached_tokens'],  
-                'processed': False,
-                'createdAt': datetime.now()
-            }
-
-            result = self.db.PendingTokenUsage.insert_one(pending_usage)
-            
-            logger.info(f"Stored pending usage for user {user_id}: {total_tokens} tokens (cached: {token_counts['cached_tokens']})")
-            return {
-                "success": True,
-                "pending_usage_id": str(result.inserted_id),
-                "tokens_stored": total_tokens,
-                "cached_tokens": token_counts['cached_tokens']
-            }
-        except Exception as e:
-            logger.error(f"Error storing pending usage: {str(e)}", exc_info=True)
-            return {"success": False, "error": str(e)}
-
-    async def process_pending_usage(self, user_id: str, usage_period_id: ObjectId) -> Dict:
-        """Process any pending token usage when a subscription becomes active"""
-        try:
-            logger.debug(f"Finding unprocessed pending usage records for user_id: {user_id}")
-            pending_records = self.db.PendingTokenUsage.find({
-                'userId': ObjectId(user_id),
-                'processed': False
-            })
-
-            total_processed = 0
-            total_tokens = 0
-
-            for record in pending_records:
-                try:
-                    # Create message record
-                    message = {
-                        'userId': record['userId'],
-                        'usagePeriodId': usage_period_id,
-                        'messageType': record['messageType'],
-                        'inputTokens': record['inputTokens'],
-                        'outputTokens': record['outputTokens'],
-                        'cachedTokens': record['cachedTokens'],
-                        'createdAt': record['createdAt']
-                    }
-                    
-                    logger.debug(f"Inserting message record: {message}")
-                    self.db.Message.insert_one(message)
-                    
-                    total_processed += 1
-                    # Include all tokens in the total (including cached tokens)
-                    total_tokens += (record['inputTokens'] + record['outputTokens'])
-
-                    logger.debug(f"Marking pending record {record['_id']} as processed")
-                    self.db.PendingTokenUsage.update_one(
-                        {'_id': record['_id']},
-                        {'$set': {'processed': True}}
-                    )
-
-                except Exception as e:
-                    logger.error(f"Error processing pending record {record['_id']}: {str(e)}")
-                    continue
-
-            logger.debug(f"Updating UsagePeriod {usage_period_id} with {total_tokens} total tokens")
-            self.db.UsagePeriod.update_one(
-                {'_id': usage_period_id},
-                {
-                    '$inc': {'totalTokensUsed': total_tokens},
-                    '$set': {'updatedAt': datetime.now()}
-                }
-            )
-
-            return {
-                "success": True,
-                "processed_count": total_processed,
-                "total_tokens_processed": total_tokens
-            }
-
-        except Exception as e:
-            logger.error(f"Error processing pending usage: {str(e)}", exc_info=True)
-            return {"success": False, "error": str(e)}
-        
     async def update_user_token_usage(
         self,
         user_id: str,
@@ -292,8 +204,9 @@ class TokenUsageTracker:
 
             # If no active usage period, store as pending usage
             if not usage_period:
-                logger.info(f"No active usage period found for user {user_id}, storing as pending usage")
-                return await self.store_pending_usage(user_id, metrics, message_type)
+                # logger.info(f"No active usage period found for user {user_id}, storing as pending usage")
+                # return await self.store_pending_usage(user_id, metrics, message_type) # remove pending token usage as we have removed it from the schema
+                return {"success": False, "error": "No active usage period found"}
 
             # Process metrics
             logger.debug("Processing metrics...")
@@ -309,7 +222,7 @@ class TokenUsageTracker:
                 'messageType': message_type,
                 'inputTokens': token_counts['input_tokens'],
                 'outputTokens': token_counts['output_tokens'],
-                'cachedTokens': token_counts['cached_tokens'],
+                'cachedInputTokens': token_counts['cached_tokens'],
                 'createdAt': datetime.now()
             }
             logger.debug(f"Preparing to insert message record: {message}")
@@ -327,7 +240,7 @@ class TokenUsageTracker:
                 update_result = self.db.UsagePeriod.update_one(
                     {'_id': usage_period['_id']},
                     {
-                        '$inc': {'totalTokensUsed': total_tokens},
+                        '$inc': {'totalInputTokensUsed': token_counts['input_tokens'], 'totalOutputTokensUsed': token_counts['output_tokens'], 'totalCachedInputTokensUsed': token_counts['cached_tokens']},
                         '$set': {'updatedAt': datetime.now()}
                     }
                 )
