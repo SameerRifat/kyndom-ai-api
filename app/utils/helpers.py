@@ -1,3 +1,4 @@
+#app/utils/helpers.py
 from typing import Generator, List, Iterator
 from phi.agent import Agent, RunResponse
 from difflib import SequenceMatcher
@@ -62,21 +63,6 @@ def chat_response_streamer(
     # Debug logging
     print("---" * 5, "Final Metrics", "---" * 5)
     pprint(agent.run_response.metrics)
-
-    # if agent.run_response.messages:
-    #     for message in agent.run_response.messages:
-    #         if message.role == "assistant":
-    #             if message.content:
-    #                 print(f"Message: {message.content}")
-    #             elif message.tool_calls:
-    #                 print(f"Tool calls: {message.tool_calls}")
-    #             print("---" * 5, "Metrics", "---" * 5)
-    #             pprint(message.metrics)
-    #             print("---" * 20)
-
-    # # Print the metrics
-    # print("---" * 5, "Aggregated Metrics", "---" * 5)
-    # pprint(agent.run_response.metrics)
 
 def is_sensitive_content(content: str, prompts_first_lines: List[str]) -> bool:
     """

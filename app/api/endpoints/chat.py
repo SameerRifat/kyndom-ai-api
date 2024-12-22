@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.responses import StreamingResponse, JSONResponse
 from app.models.schemas import ChatRequest, ChatSummaryRequest
 from phi.agent import Agent, RunResponse
+from rich.pretty import pprint
 from app.core.assistants import (
     get_assistant
 )
@@ -31,8 +32,6 @@ router = APIRouter()
 async def chat(request: Request, body: ChatRequest):
     """Sends a message to an Assistant and returns the response"""
 
-    # cancel_flag.clear()
-
     logger.debug(f"ChatRequest: {body}")
     print(f"request: {request}")
 
@@ -53,9 +52,6 @@ async def chat(request: Request, body: ChatRequest):
         template_category=body.template_category,
         is_speech_to_speech=body.is_speech_to_speech
     ))
-
-    # session_id = agent.session_id
-    # print(f"Started Run: {session_id}")
     
     # Comment out after first run
     # agent.knowledge.load(recreate=False)
@@ -78,13 +74,17 @@ async def chat(request: Request, body: ChatRequest):
 
     token_tracker = TokenUsageTracker()
 
+    # Determine message type based on request
+    message_type = "TEXT_CHAT"
+    # message_type = "TEXT_TO_SPEECH" if body.is_speech_to_speech else "TEXT_CHAT"
+
+    background_tasks = BackgroundTasks()
+
     if body.stream:
         # For streaming responses, update tokens after stream ends
         response_generator = chat_response_streamer(
             agent, body.message, body.new, prompts_first_lines
         )
-        # Create background tasks correctly
-        background_tasks = BackgroundTasks()
 
         async def update_tokens_after_stream():
             logger.debug(f"Metrics before update: {agent.run_response.metrics}")
@@ -93,6 +93,7 @@ async def chat(request: Request, body: ChatRequest):
                 await token_tracker.update_user_token_usage(
                     user_id=body.user_id,
                     metrics=agent.run_response.metrics,
+                    message_type=message_type
                 )
             else:
                 logger.error("Metrics not available after streaming completed")
@@ -110,12 +111,16 @@ async def chat(request: Request, body: ChatRequest):
         if is_sensitive_content(response_content, prompts_first_lines):
             response_content = "Sorry, I'm not able to respond to that request."
 
+        # Debug logging
+        print("---" * 5, "Final Metrics", "---" * 5)
+        pprint(response.metrics)
             # Add token tracking as a background task
         async def update_tokens_after_response():
             if response and response.metrics:
                 await token_tracker.update_user_token_usage(
                     user_id=body.user_id,
                     metrics=response.metrics,
+                    message_type=message_type
                 )
             else:
                 logger.error("Metrics not available for non-streaming response")
@@ -134,7 +139,7 @@ async def chat(request: Request, body: ChatRequest):
             content=response_data,
             background=background_tasks
         )
-
+    
 @router.post("/chat-summary")
 @auth_middleware.requires_auth
 async def chat_summary(request: Request, body: ChatSummaryRequest):
@@ -150,8 +155,51 @@ async def chat_summary(request: Request, body: ChatSummaryRequest):
     response: RunResponse = agent.run(summary_prompt_with_context, stream=False)
     summary = response.content
 
-    return JSONResponse({"response": summary})
+    # Create a TokenUsageTracker instance
+    token_tracker = TokenUsageTracker()
 
+    # Debug logging
+    print("---" * 5, "Final Metrics", "---" * 5)
+    pprint(response.metrics)
+
+    # Update token usage in a background task
+    async def update_tokens_after_summary():
+        if response and response.metrics:
+            await token_tracker.update_user_token_usage(
+                user_id=body.user_id,
+                metrics=response.metrics,
+                message_type="TEXT_CHAT"
+            )
+        else:
+            logger.error("Metrics not available for chat summary response")
+
+    background_tasks = BackgroundTasks()
+    background_tasks.add_task(update_tokens_after_summary)
+
+    return JSONResponse(
+        {"response": summary},
+        background=background_tasks
+    )
+
+# @router.post("/chat-summary")
+# @auth_middleware.requires_auth
+# async def chat_summary(request: Request, body: ChatSummaryRequest):
+#     """Generates a summary title for the most recent chat message"""
+#     logger.debug(f"ChatSummaryRequest: {body}")
+
+#     agent = (get_assistant(
+#         session_id=body.session_id,
+#         user_id=body.user_id
+#     ))
+
+#     summary_prompt_with_context = get_summary_prompt_with_context(body.recent_message)
+#     response: RunResponse = agent.run(summary_prompt_with_context, stream=False)
+#     summary = response.content
+
+#     return JSONResponse({"response": summary})
+
+
+####################################################################################################################
 
 # from fastapi import APIRouter
 # from fastapi.responses import StreamingResponse, JSONResponse
