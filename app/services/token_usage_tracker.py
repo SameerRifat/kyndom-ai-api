@@ -1,4 +1,3 @@
-# app/services/token_usage_tracker.py
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from datetime import datetime, timedelta
@@ -92,13 +91,6 @@ class TokenUsageTracker:
             result = self.db.UsagePeriod.insert_one(new_period)
             new_period['_id'] = result.inserted_id
             logger.info(f"Created new usage period with ID: {result.inserted_id}")
-
-           # Process any pending usage for this user
-            # pending_result = await self.process_pending_usage(
-            #     str(subscription['userId']), 
-            #     result.inserted_id
-            # )
-            # logger.info(f"Pending usage processing result: {pending_result}")
             
             return new_period
 
@@ -204,8 +196,6 @@ class TokenUsageTracker:
 
             # If no active usage period, store as pending usage
             if not usage_period:
-                # logger.info(f"No active usage period found for user {user_id}, storing as pending usage")
-                # return await self.store_pending_usage(user_id, metrics, message_type) # remove pending token usage as we have removed it from the schema
                 return {"success": False, "error": "No active usage period found"}
 
             # Process metrics
